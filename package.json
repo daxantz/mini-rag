@@ -30,6 +30,7 @@
 		"@tailwindcss/postcss": "^4.1.10",
 		"@types/cheerio": "1.0.0",
 		"@types/node-fetch": "3.0.2",
+		"@types/uuid": "^10.0.0",
 		"ai": "^5.0.22",
 		"axios": "^1.10.0",
 		"cheerio": "^1.1.0",
@@ -46,6 +47,7 @@
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",
 		"react-markdown": "^10.1.0",
+		"uuid": "^13.0.0",
 		"zod": "^3.24.2"
 	},
 	"devDependencies": {

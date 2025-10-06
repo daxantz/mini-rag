@@ -8,6 +8,7 @@ export async function ragAgent(request: AgentRequest): Promise<AgentResponse> {
 	// Step 1: Generate embedding for the refined query
 	const embeddingResponse = await openaiClient.embeddings.create({
 		model: 'text-embedding-3-small',
+		dimensions: 512,
 		input: request.query,
 	});
 
@@ -24,11 +25,11 @@ export async function ragAgent(request: AgentRequest): Promise<AgentResponse> {
 
 	// Step 3: Re-rank using Pinecone's inference API with Cohere
 	const documents = queryResponse.matches.map(
-		(match) => match.metadata?.text as string
+		(match) => (match.metadata?.content as string) || ''
 	);
 
 	const reranked = await pineconeClient.inference.rerank(
-		'cohere-rerank-3.5',
+		'bge-reranker-v2-m3',
 		request.query,
 		documents,
 		{
