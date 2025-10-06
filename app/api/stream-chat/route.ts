@@ -42,8 +42,6 @@ export const POST = async (req: NextRequest) => {
 	const inputSchema = apiSchemas['STREAM-CHAT'].input;
 	const result = inputSchema.safeParse(body);
 
-	console.log('result', result);
-
 	if (!result.success) {
 		return NextResponse.json(result.error.errors, { status: 400 });
 	}
