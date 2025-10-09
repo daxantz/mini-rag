@@ -58,24 +58,28 @@ The OpenAI API is pay-per-use. You'll need to add a payment method:
 3. Add $5-10 in credits (this will last you a long time for learning)
 
 **Cost Breakdown:**
-- Embeddings (`text-embedding-3-small`): ~$0.0001 per 1K tokens (very cheap!)
-- GPT-4o-mini: ~$0.15 per 1M input tokens
-- For this tutorial, $5 will be more than enough
+
+-   Embeddings (`text-embedding-3-small`): ~$0.0001 per 1K tokens (very cheap!)
+-   GPT-4o-mini: ~$0.15 per 1M input tokens
+-   For this tutorial, $5 will be more than enough
 
 **Learn more:**
-- [OpenAI Platform Documentation](https://platform.openai.com/docs/introduction)
-- [OpenAI Node.js SDK](https://github.com/openai/openai-node) (version `5.15.0` used in this project)
-- [Embeddings Guide](https://platform.openai.com/docs/guides/embeddings)
+
+-   [OpenAI Platform Documentation](https://platform.openai.com/docs/introduction)
+-   [OpenAI Node.js SDK](https://github.com/openai/openai-node) (version `5.15.0` used in this project)
+-   [Embeddings Guide](https://platform.openai.com/docs/guides/embeddings)
 
 ### Understanding OpenAI Models
 
 **Embedding Models** (convert text to vectors):
-- **text-embedding-3-small**: 512-1536 dimensions, fast and cheap ✅ (we'll use this)
-- **text-embedding-3-large**: up to 3072 dimensions, more accurate but pricier
+
+-   **text-embedding-3-small**: 512-1536 dimensions, fast and cheap ✅ (we'll use this)
+-   **text-embedding-3-large**: up to 3072 dimensions, more accurate but pricier
 
 **Chat Models** (generate responses):
-- **gpt-4o**: Most capable, best reasoning
-- **gpt-4o-mini**: Great balance of speed/cost/quality ✅ (we'll use this)
+
+-   **gpt-4o**: Most capable, best reasoning
+-   **gpt-4o-mini**: Great balance of speed/cost/quality ✅ (we'll use this)
 
 ---
 
@@ -96,8 +100,9 @@ The OpenAI API is pay-per-use. You'll need to add a payment method:
 **⚠️ CRITICAL**: Your Pinecone index dimensions MUST match your OpenAI embedding dimensions. We're using `512` dimensions for `text-embedding-3-small`.
 
 **Learn more:**
-- [Pinecone Documentation](https://docs.pinecone.io/docs/overview)
-- [Pinecone Node.js SDK](https://www.npmjs.com/package/@pinecone-database/pinecone) (version `6.1.0` used in this project)
+
+-   [Pinecone Documentation](https://docs.pinecone.io/docs/overview)
+-   [Pinecone Node.js SDK](https://www.npmjs.com/package/@pinecone-database/pinecone) (version `6.1.0` used in this project)
 
 ---
 
@@ -115,9 +120,10 @@ PINECONE_INDEX=rag-tutorial
 ```
 
 **Where to get these:**
-- **OPENAI_API_KEY**: OpenAI Platform → API Keys
-- **PINECONE_API_KEY**: Pinecone console → API Keys
-- **PINECONE_INDEX**: The name you chose when creating your index (`rag-tutorial`)
+
+-   **OPENAI_API_KEY**: OpenAI Platform → API Keys
+-   **PINECONE_API_KEY**: Pinecone console → API Keys
+-   **PINECONE_INDEX**: The name you chose when creating your index (`rag-tutorial`)
 
 ---
 
@@ -192,6 +198,7 @@ export const searchDocuments = async (
 -   **Index**: A specific vector database (like a table in a traditional database)
 
 Think of it like:
+
 -   Client = Database connection pool
 -   Index = Specific table you want to query
 
@@ -213,6 +220,7 @@ When you query Pinecone:
 3. **includeMetadata**: Whether to return the document text/metadata (we need this!)
 
 The response contains:
+
 -   **id**: Unique document identifier
 -   **score**: Similarity score (0-1, where 1 = identical)
 -   **metadata**: The actual text content and any other data we stored
@@ -240,10 +248,10 @@ console.log('Pinecone client initialized:', !!pineconeClient);
 
 **Common Issues:**
 
-- ❌ `OPENAI_API_KEY is missing` → Check your .env file
-- ❌ `PINECONE_API_KEY is missing` → Check your .env file
-- ❌ `Dimensions mismatch` → Pinecone index must be 512 dimensions
-- ❌ `Index not found` → Verify your index name in Pinecone console
+-   ❌ `OPENAI_API_KEY is missing` → Check your .env file
+-   ❌ `PINECONE_API_KEY is missing` → Check your .env file
+-   ❌ `Dimensions mismatch` → Pinecone index must be 512 dimensions
+-   ❌ `Index not found` → Verify your index name in Pinecone console
 
 ---
 
@@ -254,16 +262,17 @@ Notice we use `dimensions: 512` in our code:
 ```typescript
 const queryEmbedding = await openaiClient.embeddings.create({
 	model: 'text-embedding-3-small',
-	dimensions: 512,  // Must match Pinecone index!
+	dimensions: 512, // Must match Pinecone index!
 	input: query,
 });
 ```
 
 **Why 512 dimensions?**
-- Smaller than default 1536 = faster and cheaper
-- Still highly accurate for most use cases
-- Reduces storage costs in Pinecone
-- Faster similarity search
+
+-   Smaller than default 1536 = faster and cheaper
+-   Still highly accurate for most use cases
+-   Reduces storage costs in Pinecone
+-   Faster similarity search
 
 **CRITICAL**: Your Pinecone index dimensions must match this value. If you created your index with different dimensions, update the code to match.
 
@@ -281,35 +290,39 @@ Create a document (markdown, Google Doc, or notes) that answers these questions:
 
 For each content type below, what embedding dimensions would you choose and why?
 
-- **LinkedIn Posts** (short, casual, 1-3 paragraphs)
-  - Recommended dimensions: ?
-  - Reasoning: ?
+-   **LinkedIn Posts** (short, casual, 1-3 paragraphs)
 
-- **Legal Documents** (long, technical, precise language)
-  - Recommended dimensions: ?
-  - Reasoning: ?
+    -   Recommended dimensions: ?
+    -   Reasoning: ?
 
-- **Product Reviews** (mixed sentiment, varied length)
-  - Recommended dimensions: ?
-  - Reasoning: ?
+-   **Legal Documents** (long, technical, precise language)
 
-- **Code Documentation** (technical, structured)
-  - Recommended dimensions: ?
-  - Reasoning: ?
+    -   Recommended dimensions: ?
+    -   Reasoning: ?
+
+-   **Product Reviews** (mixed sentiment, varied length)
+
+    -   Recommended dimensions: ?
+    -   Reasoning: ?
+
+-   **Code Documentation** (technical, structured)
+    -   Recommended dimensions: ?
+    -   Reasoning: ?
 
 **2. Image Embeddings**
 
 Research how image embeddings differ from text embeddings:
-- What models generate image embeddings? (Hint: CLIP, ResNet)
-- What dimension ranges are typical for images?
-- How do image embedding dimensions compare to text?
+
+-   What models generate image embeddings? (Hint: CLIP, ResNet)
+-   What dimension ranges are typical for images?
+-   How do image embedding dimensions compare to text?
 
 **3. The Dimension Trade-off Matrix**
 
 Create a table comparing dimensions across these factors:
 
 | Dimensions | Accuracy | Speed | Storage Cost | Use Case |
-|------------|----------|-------|--------------|----------|
+| ---------- | -------- | ----- | ------------ | -------- |
 | 256        | ?        | ?     | ?            | ?        |
 | 512        | ?        | ?     | ?            | ?        |
 | 1536       | ?        | ?     | ?            | ?        |
@@ -318,23 +331,26 @@ Create a table comparing dimensions across these factors:
 **4. Real-World Scenario**
 
 You're building a RAG system for a legal tech company that handles:
-- Short case summaries (200-500 words)
-- Full legal opinions (5,000-20,000 words)
-- Case law citations (very short, highly precise)
+
+-   Short case summaries (200-500 words)
+-   Full legal opinions (5,000-20,000 words)
+-   Case law citations (very short, highly precise)
 
 What dimensions would you choose for each? Would you use different Pinecone indexes? Why or why not?
 
 **5. Cost Analysis**
 
 Calculate the storage difference between dimensions:
-- You have 100,000 documents
-- Each dimension is a 32-bit float (4 bytes)
-- Compare storage for 512 vs 1536 vs 3072 dimensions
+
+-   You have 100,000 documents
+-   Each dimension is a 32-bit float (4 bytes)
+-   Compare storage for 512 vs 1536 vs 3072 dimensions
 
 **Helpful Resources:**
-- [OpenAI Embeddings Dimensions Guide](https://platform.openai.com/docs/guides/embeddings/embedding-models)
-- [Pinecone Performance Guide](https://docs.pinecone.io/guides/performance-tuning)
-- [CLIP Model for Images](https://openai.com/research/clip)
+
+-   [OpenAI Embeddings Dimensions Guide](https://platform.openai.com/docs/guides/embeddings/embedding-models)
+-   [Pinecone Performance Guide](https://docs.pinecone.io/guides/performance-tuning)
+-   [CLIP Model for Images](https://openai.com/research/clip)
 
 ### Submission
 
@@ -347,10 +363,11 @@ Save your analysis document and keep it as a reference. Understanding these trad
 ## What's Next?
 
 Excellent! You now have:
-- ✅ OpenAI API configured for embeddings and chat
-- ✅ Pinecone vector database configured
-- ✅ A `searchDocuments()` function ready to use
-- ✅ Understanding of embedding dimension trade-offs
+
+-   ✅ OpenAI API configured for embeddings and chat
+-   ✅ Pinecone vector database configured
+-   ✅ A `searchDocuments()` function ready to use
+-   ✅ Understanding of embedding dimension trade-offs
 
 **Coming up in the next modules:**
 
@@ -365,19 +382,15 @@ Excellent! You now have:
 ## Quick Reference
 
 **OpenAI SDK Documentation:**
-- [OpenAI Node.js SDK GitHub](https://github.com/openai/openai-node)
-- [Embeddings API Reference](https://platform.openai.com/docs/api-reference/embeddings)
-- [Chat Completions API Reference](https://platform.openai.com/docs/api-reference/chat)
+
+-   [OpenAI Node.js SDK GitHub](https://github.com/openai/openai-node)
+-   [Embeddings API Reference](https://platform.openai.com/docs/api-reference/embeddings)
+-   [Chat Completions API Reference](https://platform.openai.com/docs/api-reference/chat)
 
 **Pinecone SDK Documentation:**
-- [Pinecone Node.js SDK](https://docs.pinecone.io/reference/node-sdk)
-- [Query API Reference](https://docs.pinecone.io/reference/query)
-- [Best Practices](https://docs.pinecone.io/guides/best-practices)
+
+-   [Pinecone Node.js SDK](https://docs.pinecone.io/reference/node-sdk)
+-   [Query API Reference](https://docs.pinecone.io/reference/query)
+-   [Best Practices](https://docs.pinecone.io/guides/best-practices)
 
 ---
-
-## Video Walkthrough
-
-Watch me set up OpenAI and Pinecone step-by-step:
-
-<div style="position: relative; padding-bottom: 56.25%; height: 0;"><iframe src="https://www.loom.com/embed/pinecone-openai-setup" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe></div>
