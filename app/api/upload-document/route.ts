@@ -60,7 +60,10 @@ export async function POST(req: NextRequest) {
 			const vectors = batch.map((chunk, idx) => ({
 				id: chunk.id,
 				values: embeddingResponse.data[idx].embedding,
-				metadata: chunk.metadata,
+				metadata: {
+					text: chunk.content,
+					...chunk.metadata,
+				},
 			}));
 			await index.upsert(vectors);
 			successCount += batch.length;
