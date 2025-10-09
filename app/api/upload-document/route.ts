@@ -66,19 +66,6 @@ export async function POST(req: NextRequest) {
 			successCount += batch.length;
 		}
 
-		// TODO: Step 7 - Prepare vectors for Pinecone
-		// Map each chunk to a vector object with:
-		// - id: unique identifier (e.g., url + chunkIndex)
-		// - values: the embedding array
-		// - metadata: { text, url, title, chunkIndex, totalChunks }
-
-		// TODO: Step 8 - Upload to Pinecone
-		// Use index.upsert() to upload the batch
-		// Track successful uploads
-
-		// TODO: Step 9 - Return success response
-		// Return JSON with success status and counts
-
 		return NextResponse.json(
 			{
 				success: true,
