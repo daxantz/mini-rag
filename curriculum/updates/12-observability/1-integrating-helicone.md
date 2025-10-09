@@ -55,10 +55,13 @@ Without observability, you're flying blind:
 -   Free tier (generous limits)
 -   OpenAI-specific optimizations
 
-**Learn more:**
+**Important Resources:**
 
--   [Helicone Documentation](https://docs.helicone.ai/)
--   [Helicone GitHub](https://github.com/Helicone/helicone)
+-   [Helicone Documentation](https://docs.helicone.ai/) - Official docs
+-   [Helicone GitHub](https://github.com/Helicone/helicone) - Source code, issues, examples
+-   [Integration Guide](https://github.com/Helicone/helicone#quick-start) - Quick start
+
+**💡 Pro Tip:** If you run into issues during integration, check the [GitHub Issues](https://github.com/Helicone/helicone/issues) page - many common problems and solutions are documented there!
 
 ---
 
@@ -271,16 +274,24 @@ Update your agent implementations to include custom properties:
 ## Common Issues
 
 **❌ "Unauthorized" error**
-→ Check your `HELICONE_API_KEY` in `.env`
+→ Check your `HELICONE_API_KEY` in `.env` or `.env.local`
 
 **❌ "Connection refused"**
-→ Verify `baseURL` is exactly `https://oai.helicone.ai/v1`
+→ Verify `baseURL` format is correct: `https://oai.helicone.ai/v1/YOUR_KEY`
 
 **❌ "No data in dashboard"**
 → Make sure you're making requests through the instrumented client
 
 **❌ "Slow responses"**
 → Helicone adds ~10-20ms; if it's more, check your network
+
+**❌ "API key format issues"**
+→ Check [Helicone GitHub](https://github.com/Helicone/helicone) for latest integration patterns
+
+**Need More Help?**
+- Check [Helicone Issues](https://github.com/Helicone/helicone/issues) for similar problems
+- Review [OpenAI Integration Docs](https://docs.helicone.ai/getting-started/integration-method/openai)
+- Verify your API key is active in [Helicone Dashboard](https://www.helicone.ai/)
 
 ---
 
