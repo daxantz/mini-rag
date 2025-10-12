@@ -29,9 +29,9 @@ export async function POST(req: NextRequest) {
 			.join('\n');
 
 		// Summarize conversation and determine agent
-		const completion = await openaiClient.chat.completions.create({
+		const result = await openaiClient.responses.parse({
 			model: 'gpt-4o-mini',
-			messages: [
+			input: [
 				{
 					role: 'system',
 					content: `You are an agent router. Based on the conversation history, determine which agent should handle the request and create a focused query.
@@ -46,18 +46,10 @@ The query should be a refined, clear version of what the user wants, removing co
 					content: msg.content,
 				})),
 			],
-			response_format: zodResponseFormat(
-				agentSelectionSchema,
-				'agentSelection'
-			),
+			text: {
+				format: zodResponseFormat(agentSelectionSchema, 'agent_selection'),
+			},
 		});
-
-		const content = completion.choices[0]?.message?.content;
-		if (!content) {
-			throw new Error('No response from OpenAI');
-		}
-
-		const result = agentSelectionSchema.parse(JSON.parse(content));
 
 		return NextResponse.json({
 			agent: result.agent,
