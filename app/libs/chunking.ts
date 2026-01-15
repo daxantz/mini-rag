@@ -11,6 +11,20 @@ export type Chunk = {
 	};
 };
 
+export type LinkedInPost = {
+	text: string;
+	date: string;
+	url: string;
+	likes: number;
+};
+
+export type MediumArticle = {
+	title: string;
+	text: string;
+	date: string;
+	url: string;
+};
+
 /**
  * Splits text into smaller chunks for processing
  * @param text The text to chunk
@@ -120,9 +134,134 @@ export function chunkText(
  * 8. Return the result
  */
 function getLastWords(text: string, maxLength: number): string {
-	// TODO: Implement this function!
-	// YOUR CODE HERE
+	// If text is shorter than maxLength, return the whole text
+	if (text.length <= maxLength) {
+		return text;
+	}
 
-	// Placeholder return - replace with your implementation
-	throw new Error('getLastWords not implemented yet!');
+	// Split text into words
+	const words = text.split(' ');
+
+	// Start with empty result string
+	let result = '';
+
+	// Loop through words backwards (from end to start)
+	for (let i = words.length - 1; i >= 0; i--) {
+		const word = words[i];
+
+		// Check if adding this word would exceed maxLength
+		// Need to account for the space between words
+		const testResult = word + (result ? ' ' + result : '');
+
+		if (testResult.length > maxLength) {
+			// If it would exceed, break the loop
+			break;
+		}
+
+		// Otherwise, prepend the word to result
+		result = testResult;
+	}
+
+	return result;
+}
+
+/**
+ * Extracts LinkedIn posts from CSV data
+ * @param csvContent The CSV file content as a string
+ * @returns Array of LinkedInPost objects with text, date, url, and likes
+ */
+export function extractLinkedInPosts(csvContent: string): LinkedInPost[] {
+	const lines = csvContent.trim().split('\n');
+	const headers = lines[0].split(',');
+
+	// Find column indices
+	const textIndex = headers.indexOf('text');
+	const dateIndex = headers.indexOf('createdAt (TZ=America/Los_Angeles)');
+	const urlIndex = headers.indexOf('link');
+	const likesIndex = headers.indexOf('numReactions');
+
+	const posts: LinkedInPost[] = [];
+
+	// Process each line (skip header)
+	for (let i = 1; i < lines.length; i++) {
+		const line = lines[i];
+		if (!line.trim()) continue;
+
+		// CSV parsing with quoted fields
+		const values: string[] = [];
+		let currentValue = '';
+		let insideQuotes = false;
+
+		for (let j = 0; j < line.length; j++) {
+			const char = line[j];
+
+			if (char === '"') {
+				insideQuotes = !insideQuotes;
+			} else if (char === ',' && !insideQuotes) {
+				values.push(currentValue);
+				currentValue = '';
+			} else {
+				currentValue += char;
+			}
+		}
+		values.push(currentValue); // Add last value
+
+		if (values.length > Math.max(textIndex, dateIndex, urlIndex, likesIndex)) {
+			posts.push({
+				text: values[textIndex],
+				date: values[dateIndex],
+				url: values[urlIndex],
+				likes: parseInt(values[likesIndex]) || 0,
+			});
+		}
+	}
+
+	return posts;
+}
+
+/**
+ * Extracts Medium articles from HTML files
+ * @param htmlContent The HTML file content as a string
+ * @returns MediumArticle object with title, text, date, and url
+ */
+export function extractMediumArticle(htmlContent: string): MediumArticle | null {
+	try {
+		// Extract title from <title> tag
+		const titleMatch = htmlContent.match(/<title>(.*?)<\/title>/);
+		const title = titleMatch ? titleMatch[1] : 'Untitled';
+
+		// Extract date from <time datetime="...">
+		const dateMatch = htmlContent.match(/<time class="dt-published" datetime="(.*?)"/);
+		const date = dateMatch ? dateMatch[1] : '';
+
+		// Extract canonical URL
+		const urlMatch = htmlContent.match(/<a href="(https:\/\/medium\.com\/@brianjenney\/[^"]+)" class="p-canonical">/);
+		const url = urlMatch ? urlMatch[1] : '';
+
+		// Extract text content from body section
+		// Remove HTML tags but keep the text content
+		const bodyMatch = htmlContent.match(/<section data-field="body" class="e-content">([\s\S]*?)<\/section>/);
+		let text = '';
+
+		if (bodyMatch) {
+			const bodyContent = bodyMatch[1];
+			// Remove all HTML tags but keep text
+			text = bodyContent
+				.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+				.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+				.replace(/<[^>]+>/g, ' ')
+				.replace(/\s+/g, ' ')
+				.trim();
+		}
+
+		return {
+			title,
+			text,
+			date,
+			url,
+		};
+	} catch (error) {
+		console.error('Error extracting Medium article:', error);
+		return null;
+	}
 }
