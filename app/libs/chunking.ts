@@ -171,10 +171,53 @@ function getLastWords(text: string, maxLength: number): string {
  * @returns Array of LinkedInPost objects with text, date, url, and likes
  */
 export function extractLinkedInPosts(csvContent: string): LinkedInPost[] {
-	const lines = csvContent.trim().split('\n');
-	const headers = lines[0].split(',');
+	// Parse CSV properly handling multiline quoted fields
+	const records: string[][] = [];
+	let currentRecord: string[] = [];
+	let currentValue = '';
+	let insideQuotes = false;
 
-	// Find column indices
+	for (let i = 0; i < csvContent.length; i++) {
+		const char = csvContent[i];
+		const nextChar = csvContent[i + 1];
+
+		if (char === '"' && nextChar === '"' && insideQuotes) {
+			// Escaped quote (two quotes in a row inside a quoted field)
+			currentValue += '"';
+			i++; // Skip next quote
+		} else if (char === '"') {
+			// Toggle quote state
+			insideQuotes = !insideQuotes;
+		} else if (char === ',' && !insideQuotes) {
+			// End of field
+			currentRecord.push(currentValue);
+			currentValue = '';
+		} else if (char === '\n' && !insideQuotes) {
+			// End of record
+			currentRecord.push(currentValue);
+			if (currentRecord.some((val) => val.trim().length > 0)) {
+				records.push(currentRecord);
+			}
+			currentRecord = [];
+			currentValue = '';
+		} else {
+			// Regular character
+			currentValue += char;
+		}
+	}
+
+	// Add last record if exists
+	if (currentValue || currentRecord.length > 0) {
+		currentRecord.push(currentValue);
+		if (currentRecord.some((val) => val.trim().length > 0)) {
+			records.push(currentRecord);
+		}
+	}
+
+	if (records.length === 0) return [];
+
+	// Parse headers
+	const headers = records[0];
 	const textIndex = headers.indexOf('text');
 	const dateIndex = headers.indexOf('createdAt (TZ=America/Los_Angeles)');
 	const urlIndex = headers.indexOf('link');
@@ -182,36 +225,16 @@ export function extractLinkedInPosts(csvContent: string): LinkedInPost[] {
 
 	const posts: LinkedInPost[] = [];
 
-	// Process each line (skip header)
-	for (let i = 1; i < lines.length; i++) {
-		const line = lines[i];
-		if (!line.trim()) continue;
+	// Process each record (skip header)
+	for (let i = 1; i < records.length; i++) {
+		const record = records[i];
 
-		// CSV parsing with quoted fields
-		const values: string[] = [];
-		let currentValue = '';
-		let insideQuotes = false;
-
-		for (let j = 0; j < line.length; j++) {
-			const char = line[j];
-
-			if (char === '"') {
-				insideQuotes = !insideQuotes;
-			} else if (char === ',' && !insideQuotes) {
-				values.push(currentValue);
-				currentValue = '';
-			} else {
-				currentValue += char;
-			}
-		}
-		values.push(currentValue); // Add last value
-
-		if (values.length > Math.max(textIndex, dateIndex, urlIndex, likesIndex)) {
+		if (record.length > Math.max(textIndex, dateIndex, urlIndex, likesIndex)) {
 			posts.push({
-				text: values[textIndex],
-				date: values[dateIndex],
-				url: values[urlIndex],
-				likes: parseInt(values[likesIndex]) || 0,
+				text: record[textIndex]?.trim() || '',
+				date: record[dateIndex]?.trim() || '',
+				url: record[urlIndex]?.trim() || '',
+				likes: parseInt(record[likesIndex]) || 0,
 			});
 		}
 	}

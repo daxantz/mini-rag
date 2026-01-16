@@ -1,7 +1,7 @@
 /**
- * PINECONE VECTOR DATABASE INTEGRATION
+ * QDRANT VECTOR DATABASE INTEGRATION
  *
- * This file handles interactions with Pinecone, a managed vector database service.
+ * This file handles interactions with Qdrant, an open-source vector database service.
  *
  * WHAT IS A VECTOR DATABASE?
  * Vector databases store high-dimensional numerical representations (embeddings) of data.
@@ -10,22 +10,19 @@
  * rather than exact keyword matches.
  *
  *
- * Learn more: https://docs.pinecone.io/docs/overview
+ * Learn more: https://qdrant.tech/documentation/
  *
  * EXPERIMENT: Try changing the embedding model or topK values below!
  */
 
-import {
-	Pinecone,
-	RecordMetadata,
-	ScoredPineconeRecord,
-} from '@pinecone-database/pinecone';
+import { QdrantClient } from '@qdrant/qdrant-js';
 import { openaiClient } from '../libs/openai/openai';
 
-// Initialize Pinecone client with your API key
-// Get your free API key at: https://app.pinecone.io/
-export const pineconeClient = new Pinecone({
-	apiKey: process.env.PINECONE_API_KEY as string,
+// Initialize Qdrant client with your URL and API key
+// Get started at: https://cloud.qdrant.io/
+export const qdrantClient = new QdrantClient({
+	url: process.env.QDRANT_URL as string,
+	apiKey: process.env.QDRANT_API_KEY as string,
 });
 
 /**
@@ -33,21 +30,21 @@ export const pineconeClient = new Pinecone({
  *
  * @param query - The search query (will be converted to embeddings)
  * @param topK - Number of most similar results to return (try 3-10)
+ * @param collectionName - Name of the Qdrant collection to search in
  * @returns Array of matching documents with similarity scores
  */
 export const searchDocuments = async (
 	query: string,
-	topK: number = 3
-): Promise<ScoredPineconeRecord<RecordMetadata>[]> => {
-	// TODO: Step 1 - Connect to the vector database index
+	topK: number = 3,
+	collectionName: string = 'documents'
+) => {
+	// TODO: Step 1 - Generate query embedding using OpenAI
 
-	// TODO: Step 2 - Generate query embedding using OpenAI
+	// TODO: Step 2 - Extract the embedding array from the response
 
-	// TODO: Step 3 - Extract the embedding array from the response
+	// TODO: Step 3 - Query Qdrant for similar vectors
 
-	// TODO: Step 4 - Query vector database for similar vectors
-
-	// TODO: Step 5 - Return the matches
+	// TODO: Step 4 - Return the matches
 
 	throw new Error('searchDocuments not implemented yet!');
 };
