@@ -155,8 +155,9 @@ export default function Home() {
 			<div className='mb-8 p-4 border rounded'>
 				<h2 className='text-xl font-semibold mb-4'>Upload Content</h2>
 				<p className='text-sm text-gray-600 mb-4'>
-					Paste text content below to add it to your knowledge base. The text
-					will be chunked, embedded, and stored in Pinecone for retrieval.
+					Paste text content below to add it to your knowledge base.
+					The text will be chunked, embedded, and stored in Pinecone
+					for retrieval.
 				</p>
 
 				<textarea
@@ -189,7 +190,8 @@ This can be documentation, articles, or any text you want to query later.'
 						<div className='text-gray-500 text-center py-8'>
 							<p className='mb-2'>Welcome to Mini RAG!</p>
 							<p className='text-sm'>
-								Upload some text above, then ask questions about it.
+								Upload some text above, then ask questions about
+								it.
 							</p>
 						</div>
 					)}
@@ -203,9 +205,13 @@ This can be documentation, articles, or any text you want to query later.'
 							}`}
 						>
 							<p className='font-semibold mb-1'>
-								{message.role === 'user' ? 'You' : 'AI Assistant'}
+								{message.role === 'user'
+									? 'You'
+									: 'AI Assistant'}
 							</p>
-							<div className='whitespace-pre-wrap'>{message.content}</div>
+							<div className='whitespace-pre-wrap'>
+								{message.content}
+							</div>
 						</div>
 					))}
 					{isStreaming && !messages[messages.length - 1]?.content && (
