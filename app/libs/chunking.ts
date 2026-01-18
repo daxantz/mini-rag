@@ -203,32 +203,80 @@ function getLastWords(text: string, maxLength: number): string {
  * - Convert numReactions to a number using parseInt()
  */
 export function extractLinkedInPosts(csvContent: string): LinkedInPost[] {
-	const lines = csvContent.split('\n');
-	if (lines.length < 2) return [];
+	// Parse CSV records character-by-character to handle multiline quoted fields
+	const records: string[][] = [];
+	let currentRecord: string[] = [];
+	let currentField = '';
+	let insideQuotes = false;
+
+	for (let i = 0; i < csvContent.length; i++) {
+		const char = csvContent[i];
+		const nextChar = csvContent[i + 1];
+
+		if (char === '"') {
+			// Handle escaped quotes ("")
+			if (insideQuotes && nextChar === '"') {
+				currentField += '"';
+				i++; // Skip next quote
+			} else {
+				// Toggle quote state
+				insideQuotes = !insideQuotes;
+			}
+		} else if (char === ',' && !insideQuotes) {
+			// End of field
+			currentRecord.push(currentField);
+			currentField = '';
+		} else if (char === '\n' && !insideQuotes) {
+			// End of record (only when not inside quotes)
+			currentRecord.push(currentField);
+			if (currentRecord.some((f) => f.trim())) {
+				// Only add non-empty records
+				records.push(currentRecord);
+			}
+			currentRecord = [];
+			currentField = '';
+		} else {
+			currentField += char;
+		}
+	}
+
+	// Add final record if exists
+	if (currentRecord.length > 0 || currentField) {
+		currentRecord.push(currentField);
+		if (currentRecord.some((f) => f.trim())) {
+			records.push(currentRecord);
+		}
+	}
+
+	if (records.length < 2) return [];
 
 	// Parse header to find column indices
-	const header = parseCSVLine(lines[0]);
+	const header = records[0];
 	const textIndex = header.indexOf('text');
 	const dateIndex = header.indexOf('createdAt (TZ=America/Los_Angeles)');
 	const urlIndex = header.indexOf('link');
 	const likesIndex = header.indexOf('numReactions');
 
 	// Validate that we found all required columns
-	if (textIndex === -1 || dateIndex === -1 || urlIndex === -1 || likesIndex === -1) {
+	if (
+		textIndex === -1 ||
+		dateIndex === -1 ||
+		urlIndex === -1 ||
+		likesIndex === -1
+	) {
 		throw new Error('Missing required columns in CSV');
 	}
 
 	const posts: LinkedInPost[] = [];
 
 	// Process each data row (skip header)
-	for (let i = 1; i < lines.length; i++) {
-		const line = lines[i].trim();
-		if (!line) continue; // Skip empty lines
-
-		const fields = parseCSVLine(line);
+	for (let i = 1; i < records.length; i++) {
+		const fields = records[i];
 
 		// Make sure we have enough fields
-		if (fields.length <= Math.max(textIndex, dateIndex, urlIndex, likesIndex)) {
+		if (
+			fields.length <= Math.max(textIndex, dateIndex, urlIndex, likesIndex)
+		) {
 			continue;
 		}
 
@@ -243,42 +291,6 @@ export function extractLinkedInPosts(csvContent: string): LinkedInPost[] {
 	}
 
 	return posts;
-}
-
-/**
- * Parses a single CSV line, handling quoted fields that may contain commas
- */
-function parseCSVLine(line: string): string[] {
-	const fields: string[] = [];
-	let currentField = '';
-	let insideQuotes = false;
-
-	for (let i = 0; i < line.length; i++) {
-		const char = line[i];
-		const nextChar = line[i + 1];
-
-		if (char === '"') {
-			// Handle escaped quotes ("")
-			if (insideQuotes && nextChar === '"') {
-				currentField += '"';
-				i++; // Skip next quote
-			} else {
-				// Toggle quote state
-				insideQuotes = !insideQuotes;
-			}
-		} else if (char === ',' && !insideQuotes) {
-			// End of field
-			fields.push(currentField);
-			currentField = '';
-		} else {
-			currentField += char;
-		}
-	}
-
-	// Add the last field
-	fields.push(currentField);
-
-	return fields;
 }
 
 /**

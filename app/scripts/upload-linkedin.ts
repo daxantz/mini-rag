@@ -17,7 +17,7 @@
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
-import { extractLinkedInPosts, type LinkedInPost } from '../libs/chunking';
+import { extractLinkedInPosts } from '../libs/chunking';
 
 // Load environment variables BEFORE importing clients
 dotenv.config();
@@ -27,7 +27,7 @@ import { openaiClient } from '../libs/openai/openai';
 
 const DATA_DIR = path.join(process.cwd(), 'app/scripts/data');
 const LINKEDIN_CSV = path.join(DATA_DIR, 'brian_posts.csv');
-const COLLECTION_NAME = 'linkedin-posts';
+const COLLECTION_NAME = 'linkedin';
 
 /**
  * Processes LinkedIn posts from CSV file and uploads to Qdrant
@@ -37,14 +37,21 @@ async function processLinkedInPosts(): Promise<void> {
 
 	// Read and parse CSV
 	const csvContent = fs.readFileSync(LINKEDIN_CSV, 'utf-8');
-	const posts = extractLinkedInPosts(csvContent);
+	const allPosts = extractLinkedInPosts(csvContent);
 
-	console.log(`Found ${posts.length} LinkedIn posts`);
+	console.log(`Found ${allPosts.length} LinkedIn posts`);
+
+	// Filter posts >= 100 characters
+	const validPosts = allPosts.filter((post) => post.text.length >= 100);
+	const rejectedCount = allPosts.length - validPosts.length;
+
+	console.log(`Valid posts (>= 100 chars): ${validPosts.length}`);
+	console.log(`Rejected posts (< 100 chars): ${rejectedCount}`);
 
 	let successCount = 0;
 	let failCount = 0;
 
-	for (const post of posts) {
+	for (const post of validPosts) {
 		try {
 			// Generate embedding for the full post text (no chunking)
 			const embeddings = await openaiClient.embeddings.create({
@@ -72,7 +79,7 @@ async function processLinkedInPosts(): Promise<void> {
 			});
 
 			successCount++;
-			console.log(`✅ Uploaded post ${successCount}/${posts.length}`);
+			console.log(`✅ Uploaded post ${successCount}/${validPosts.length}`);
 		} catch (error) {
 			console.error(`❌ Failed to upload post: ${post.url}`, error);
 			failCount++;
@@ -82,30 +89,7 @@ async function processLinkedInPosts(): Promise<void> {
 	console.log(`\n📊 Summary:`);
 	console.log(`   Successfully uploaded: ${successCount}`);
 	console.log(`   Failed: ${failCount}`);
-	console.log(`   Total: ${posts.length}`);
-}
-
-/**
- * Ensures the Qdrant collection exists with proper configuration
- */
-async function ensureCollection() {
-	console.log('🔍 Checking if collection exists...');
-
-	try {
-		// Try to get collection info
-		await qdrantClient.getCollection(COLLECTION_NAME);
-		console.log('✅ Collection already exists');
-	} catch (error) {
-		// Collection doesn't exist, create it
-		console.log('📦 Creating collection...');
-		await qdrantClient.createCollection(COLLECTION_NAME, {
-			vectors: {
-				size: 512, // text-embedding-3-small with dimensions=512
-				distance: 'Cosine',
-			},
-		});
-		console.log('✅ Collection created successfully');
-	}
+	console.log(`   Total valid posts: ${validPosts.length}`);
 }
 
 /**
@@ -115,10 +99,6 @@ async function main() {
 	console.log('🚀 Starting LinkedIn posts upload...\n');
 
 	try {
-		// Ensure collection exists
-		await ensureCollection();
-
-		// Process and upload posts
 		await processLinkedInPosts();
 		console.log('\n✅ Upload complete!');
 	} catch (error) {
