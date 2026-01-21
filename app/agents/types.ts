@@ -14,12 +14,12 @@ export const messageSchema = z.object({
 
 export type Message = z.infer<typeof messageSchema>;
 
-export interface AgentRequest {
+export type AgentRequest = {
 	type: AgentType;
 	query: string; // Refined/summarized query from selector
 	originalQuery: string; // Original user message
 	messages: Message[]; // Conversation history
-}
+};
 
 export type AgentResponse = StreamTextResult<Record<string, never>, never>;
 

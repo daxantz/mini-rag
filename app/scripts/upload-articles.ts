@@ -32,7 +32,6 @@ import { openaiClient } from '../libs/openai/openai';
 
 const DATA_DIR = path.join(process.cwd(), 'app/scripts/data');
 const ARTICLES_DIR = path.join(DATA_DIR, 'articles');
-const LINKEDIN_CSV = path.join(DATA_DIR, 'brian_posts.csv');
 
 /**
  * Processes all Medium articles from the articles directory
