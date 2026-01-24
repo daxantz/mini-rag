@@ -6,7 +6,7 @@ import o200k_base from 'js-tiktoken/ranks/o200k_base';
 const encodingForModel = new Tiktoken(o200k_base);
 
 const MAX_TOKENS_PER_EXAMPLE = 16385;
-const TARGET_EPOCHS = 3;
+const TARGET_EPOCHS = 3; // amount of times this will run
 const MIN_TARGET_EXAMPLES = 100;
 const MAX_TARGET_EXAMPLES = 25000;
 const MIN_DEFAULT_EPOCHS = 1;
