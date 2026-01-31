@@ -1,89 +1,169 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2 Understanding Chunking</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            line-height: 1.6;
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px;
-            color: #333;
-            background-color: #fff;
-        }
-        h1, h2, h3, h4, h5, h6 {
-            margin-top: 24px;
-            margin-bottom: 16px;
-            font-weight: 600;
-            line-height: 1.25;
-        }
-        h1 { font-size: 2em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
-        h2 { font-size: 1.5em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
-        h3 { font-size: 1.25em; }
-        code {
-            background-color: #f6f8fa;
-            padding: 0.2em 0.4em;
-            margin: 0;
-            font-size: 85%;
-            border-radius: 3px;
-            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-        }
-        pre {
-            background-color: #f6f8fa;
-            padding: 16px;
-            overflow: auto;
-            font-size: 85%;
-            line-height: 1.45;
-            border-radius: 6px;
-        }
-        pre code {
-            background-color: transparent;
-            padding: 0;
-            font-size: 100%;
-        }
-        blockquote {
-            padding: 0 1em;
-            color: #6a737d;
-            border-left: 0.25em solid #dfe2e5;
-            margin-left: 0;
-        }
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            margin: 16px 0;
-        }
-        table th, table td {
-            padding: 6px 13px;
-            border: 1px solid #dfe2e5;
-        }
-        table tr:nth-child(2n) {
-            background-color: #f6f8fa;
-        }
-        img {
-            max-width: 100%;
-            height: auto;
-        }
-        a {
-            color: #0366d6;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        ul, ol {
-            padding-left: 2em;
-        }
-        hr {
-            height: 0.25em;
-            padding: 0;
-            margin: 24px 0;
-            background-color: #e1e4e8;
-            border: 0;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Understanding Text Chunking</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      color: #333;
+    }
+
+    h1 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 32px;
+      font-weight: bold;
+    }
+
+    h2 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    h3 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    h4 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    h5 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    h6 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    p {
+      margin: 12px 0;
+      line-height: 1.6;
+    }
+
+    a {
+      color: #0066cc;
+      text-decoration: underline;
+    }
+
+    strong {
+      font-weight: bold;
+    }
+
+    em {
+      font-style: italic;
+    }
+
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.9em;
+    }
+
+    pre {
+      background-color: #f4f4f4;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      margin: 20px 0;
+    }
+
+    pre code {
+      background-color: transparent;
+      padding: 0;
+    }
+
+    blockquote {
+      border-left: 4px solid #ddd;
+      margin: 20px 0;
+      padding: 10px 20px;
+      background-color: #f9f9f9;
+    }
+
+    hr {
+      border: none;
+      border-top: 2px solid #eee;
+      margin: 30px 0;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 20px 0;
+    }
+
+    iframe {
+      max-width: 100%;
+      margin: 20px 0;
+    }
+
+    details {
+      margin: 20px 0;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border-radius: 5px;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    ol, ul {
+      margin: 10px 0;
+      padding-left: 30px;
+    }
+
+    li {
+      margin: 5px 0;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 20px 0;
+      border: 1px solid #ddd;
+    }
+
+    th, td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f4f4f4;
+      font-weight: bold;
+    }
+
+    input[type="checkbox"] {
+      margin-right: 5px;
+    }
+  </style>
 </head>
 <body>
 <h1>Understanding Text Chunking</h1>
@@ -353,6 +433,76 @@ getLastWords(&#39;Short&#39;, 100);
 <p>Watch the solution walkthrough for the chunking exercise:</p>
 <iframe src="https://share.descript.com/embed/WskC20VXMBd" width="640" height="360" frameborder="0" allowfullscreen></iframe>
 
+<hr>
+<h2>📝 Homework Assignment: Research Chunking Strategies</h2>
+<p><strong>Assignment:</strong> Create a video (5-7 minutes) or written report comparing chunking strategies.</p>
+<p><strong>Requirements:</strong></p>
+<ol>
+<li><p><strong>Research 2 alternative chunking strategies</strong> (beyond sentence-based chunking)</p>
+<ul>
+<li>Examples: Semantic chunking, sliding window, paragraph-based, token-based, recursive chunking</li>
+<li>Find at least 2 different strategies</li>
+</ul>
+</li>
+<li><p><strong>For each strategy, explain:</strong></p>
+<ul>
+<li>How it works (briefly)</li>
+<li>When to use it (specific use cases)</li>
+<li>Pros and cons vs sentence-based chunking</li>
+<li>Real-world example where it&#39;s better</li>
+</ul>
+</li>
+<li><p><strong>Include:</strong></p>
+<ul>
+<li>Code snippet or pseudocode showing the approach</li>
+<li>Example input/output for each strategy</li>
+<li>Comparison table of all 3 strategies (sentence-based + your 2)</li>
+</ul>
+</li>
+</ol>
+<p><strong>Example Structure:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Strategy</th>
+<th>Best For</th>
+<th>Pros</th>
+<th>Cons</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Sentence-based</td>
+<td>General docs</td>
+<td>Maintains meaning</td>
+<td>May break code blocks</td>
+</tr>
+<tr>
+<td>Semantic</td>
+<td>Long-form content</td>
+<td>Keeps related ideas together</td>
+<td>More complex</td>
+</tr>
+<tr>
+<td>Token-based</td>
+<td>LLM token limits</td>
+<td>Precise control</td>
+<td>Can break mid-sentence</td>
+</tr>
+</tbody></table>
+<p><strong>Resources to Explore:</strong></p>
+<ul>
+<li>LangChain chunking documentation</li>
+<li>LlamaIndex text splitting strategies</li>
+<li>Research papers on document retrieval</li>
+<li>Pinecone/Qdrant best practices</li>
+</ul>
+<p><strong>What to Submit:</strong></p>
+<ul>
+<li>Video link (YouTube/Loom) OR</li>
+<li>Written report (800-1200 words) with examples</li>
+</ul>
+<p><strong>Due:</strong> Before Module 5</p>
+<p><strong>Why This Matters:</strong> Different content types need different chunking strategies. Understanding trade-offs helps you build better RAG systems.</p>
 <hr>
 <h2>Experiment: Try Different Parameters</h2>
 <p>Now that you understand the implementation, experiment with different chunking parameters:</p>

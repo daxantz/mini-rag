@@ -9,8 +9,7 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
-
-15-applied-ai/
+/15-applied-ai/
 # testing
 /coverage
 

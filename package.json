@@ -18,7 +18,8 @@
 		"prepare": "husky",
 		"exercise:vectors": "npx ts-node app/scripts/exercises/vector-similarity.ts",
 		"exercise:vectors:test": "npx ts-node app/scripts/exercises/vector-similarity-test.ts",
-		"exercise:word-math": "npx ts-node app/scripts/exercises/vector-word-arithmetic.ts"
+		"exercise:word-math": "npx ts-node app/scripts/exercises/vector-word-arithmetic.ts",
+		"convert-curriculum": "node scripts/convert-md-to-kajabi-html.mjs"
 	},
 	"lint-staged": {
 		"*.{js,jsx,ts,tsx}": [
@@ -64,6 +65,7 @@
 		"jest": "30.0.0",
 		"jest-environment-jsdom": "30.0.0",
 		"lint-staged": "^16.0.0",
+		"marked": "^17.0.1",
 		"postcss": "^8",
 		"tailwindcss": "^4.1.10",
 		"ts-jest": "^29.1.2",

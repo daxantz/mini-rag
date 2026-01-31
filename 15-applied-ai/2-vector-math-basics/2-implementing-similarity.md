@@ -17,12 +17,10 @@ Watch this explanation of vector math and similarity:
 ### Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/projectshft/mini-rag.git
 cd mini_rag
 git checkout student-starter
 ```
-
-**Note:** Use `student-working-version` branch to see the complete solution.
 
 ### Install Dependencies
 
@@ -42,9 +40,9 @@ npm install
 
 A `findTopSimilarDocuments` function that:
 
--   Calculates similarity between query and documents
--   Filters by minimum threshold
--   Returns top K matches sorted by relevance
+- Calculates similarity between query and documents
+- Filters by minimum threshold
+- Returns top K matches sorted by relevance
 
 ---
 
@@ -67,9 +65,9 @@ dotProduct([1, 2, 3], [4, 5, 6]); // (1×4) + (2×5) + (3×6) = 32
 
 **Why it matters:**
 
--   Foundation of similarity measurement
--   Higher value = more aligned
--   Used in cosine similarity calculation
+- Foundation of similarity measurement
+- Higher value = more aligned
+- Used in cosine similarity calculation
 
 ### Magnitude
 
@@ -87,9 +85,9 @@ magnitude([3, 4]); // √(3² + 4²) = √25 = 5
 
 **Why it matters:**
 
--   Needed to normalize dot product
--   Think of it as "how far from origin"
--   Pythagoras in N dimensions!
+- Needed to normalize dot product
+- Think of it as "how far from origin"
+- Pythagoras in N dimensions!
 
 ### Cosine Similarity
 
@@ -114,9 +112,9 @@ cosineSimilarity([1, 0], [-1, 0]); // -1.0 (opposite)
 
 **Why cosine?**
 
--   **Direction matters, not length**: `[1, 2]` and `[2, 4]` point the same direction → similarity 1.0
--   **Normalized**: Always returns -1 to 1
--   **Standard in NLP**: Used by all major RAG systems
+- **Direction matters, not length**: `[1, 2]` and `[2, 4]` point the same direction → similarity 1.0
+- **Normalized**: Always returns -1 to 1
+- **Standard in NLP**: Used by all major RAG systems
 
 **Visualize it:**
 
@@ -153,10 +151,10 @@ export function findTopSimilarDocuments(
 
 **Parameters:**
 
--   `queryVector`: The user's question as numbers
--   `documents`: All available documents with embeddings
--   `minSimilarity`: Don't return results below this (default 0.7)
--   `topK`: Maximum number of results (default 3)
+- `queryVector`: The user's question as numbers
+- `documents`: All available documents with embeddings
+- `minSimilarity`: Don't return results below this (default 0.7)
+- `topK`: Maximum number of results (default 3)
 
 **Returns:**
 Array of documents with their similarity scores, sorted highest first.
@@ -210,10 +208,10 @@ const results = documents.map((doc) => ({
 
 **What's happening:**
 
--   Loop through each document
--   Compare query to document's embedding
--   Get a score from -1 to 1
--   Store both document and score
+- Loop through each document
+- Compare query to document's embedding
+- Get a score from -1 to 1
+- Store both document and score
 
 ### Step 2: Filter by Threshold
 
@@ -225,16 +223,16 @@ const filtered = results.filter((result) => result.similarity >= minSimilarity);
 
 **Why filter?**
 
--   Low similarity = not relevant
--   Saves computation/bandwidth
--   Better user experience (quality over quantity)
+- Low similarity = not relevant
+- Saves computation/bandwidth
+- Better user experience (quality over quantity)
 
 **Example thresholds:**
 
--   `0.9+`: Almost identical
--   `0.7-0.9`: Highly relevant ← Good default
--   `0.5-0.7`: Somewhat relevant
--   `< 0.5`: Probably noise
+- `0.9+`: Almost identical
+- `0.7-0.9`: Highly relevant ← Good default
+- `0.5-0.7`: Somewhat relevant
+- `< 0.5`: Probably noise
 
 ### Step 3: Sort by Similarity
 
@@ -246,15 +244,15 @@ filtered.sort((a, b) => b.similarity - a.similarity);
 
 **Why sort?**
 
--   User expects best results first
--   LLM gets most relevant context first
--   Standard UX pattern
+- User expects best results first
+- LLM gets most relevant context first
+- Standard UX pattern
 
 **The sorting:**
 
--   `b.similarity - a.similarity`: Descending order
--   If `b > a`: Positive number → b comes first
--   If `a > b`: Negative number → a comes first
+- `b.similarity - a.similarity`: Descending order
+- If `b > a`: Positive number → b comes first
+- If `a > b`: Negative number → a comes first
 
 ### Step 4: Take Top K
 
@@ -266,10 +264,10 @@ return filtered.slice(0, topK);
 
 **Why limit?**
 
--   LLM context window has limits
--   More isn't always better (quality > quantity)
--   Faster response times
--   Standard: 3-5 results for RAG
+- LLM context window has limits
+- More isn't always better (quality > quantity)
+- Faster response times
+- Standard: 3-5 results for RAG
 
 ---
 
