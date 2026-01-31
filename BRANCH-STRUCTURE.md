@@ -4,49 +4,53 @@ This repository uses multiple branches for different purposes in the course.
 
 ## Student Branches
 
-### `student-todo-exercises` ⭐ PRIMARY STUDENT BRANCH
-**Use this for the course!**
+### `student-working-version` ⭐ COMPLETE WORKING VERSION
+**This has all solutions implemented!**
 
-**Purpose:** Starter code with TODOs for students to complete
+**Purpose:** Fully working implementation with all exercises completed
 
 **What's included:**
+- ✅ All infrastructure and setup code
+- ✅ All helper functions and utilities
+- ✅ All API routes fully implemented
+- ✅ All exercise solutions completed
+- ✅ All agents fully implemented
+- ✅ Re-ranking, structured outputs, and advanced features
+
+**Use this branch for:**
+- Reference when stuck on exercises
+- Understanding how the complete system works
+- Comparing your implementation
+- Instructor demos
+- Running the full application
+
+**Fully implemented files:**
+```
+app/
+├── scripts/exercises/
+│   └── vector-similarity.ts          # ✅ Similarity search implemented
+├── libs/
+│   └── chunking.ts                   # ✅ getLastWords() implemented
+├── agents/
+│   ├── linkedin.ts                   # ✅ LinkedIn agent complete
+│   └── rag.ts                        # ✅ RAG agent with re-ranking
+└── api/
+    └── select-agent/route.ts         # ✅ Selector with structured outputs
+```
+
+---
+
+### `student-starter`
+**Purpose:** Starter code with TODOs for students to complete (TO BE CREATED)
+
+**What will be included:**
 - ✅ All infrastructure and setup code (pre-built)
 - ✅ Helper functions and utilities (pre-built)
 - ✅ API routes scaffolding (pre-built)
 - ❌ Exercise implementations (TODOs for students)
 - ❌ Agent implementations (TODOs for students)
 
-**Students should:**
-1. Clone this branch: `git checkout student-todo-exercises`
-2. Complete exercises marked with TODO comments
-3. Implement agents following curriculum guidance
-4. Test their implementations
-
-**Files with TODOs:**
-```
-app/
-├── scripts/exercises/
-│   └── vector-similarity.ts          # TODO: Implement similarity search
-├── libs/
-│   └── chunking.ts                   # TODO: Implement getLastWords()
-├── agents/
-│   ├── linkedin.ts                   # TODO: Implement LinkedIn agent
-│   └── rag.ts                        # TODO: Implement RAG agent
-└── api/
-    └── select-agent/route.ts         # TODO: Implement selector
-```
-
----
-
-### `student-starter` (Alternative)
-**Purpose:** Minimal starter with even less scaffolding (for advanced students)
-
-**Difference from `student-todo-exercises`:**
-- Less guidance in comments
-- Fewer helper functions
-- More "from scratch" implementation
-
-**Not recommended for first-time RAG learners.**
+**Note:** This branch needs to be created from `student-working-version` by removing solutions and adding TODOs.
 
 ---
 
