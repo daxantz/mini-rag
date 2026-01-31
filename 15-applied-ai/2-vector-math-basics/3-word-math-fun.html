@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3 Word Math Fun</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+            background-color: #fff;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+        h1 { font-size: 2em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
+        h2 { font-size: 1.5em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
+        h3 { font-size: 1.25em; }
+        code {
+            background-color: #f6f8fa;
+            padding: 0.2em 0.4em;
+            margin: 0;
+            font-size: 85%;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+        }
+        pre {
+            background-color: #f6f8fa;
+            padding: 16px;
+            overflow: auto;
+            font-size: 85%;
+            line-height: 1.45;
+            border-radius: 6px;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            font-size: 100%;
+        }
+        blockquote {
+            padding: 0 1em;
+            color: #6a737d;
+            border-left: 0.25em solid #dfe2e5;
+            margin-left: 0;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 16px 0;
+        }
+        table th, table td {
+            padding: 6px 13px;
+            border: 1px solid #dfe2e5;
+        }
+        table tr:nth-child(2n) {
+            background-color: #f6f8fa;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        ul, ol {
+            padding-left: 2em;
+        }
+        hr {
+            height: 0.25em;
+            padding: 0;
+            margin: 24px 0;
+            background-color: #e1e4e8;
+            border: 0;
+        }
+    </style>
+</head>
+<body>
+<h1>Word Math: Vectors in Action</h1>
+<p>Let&#39;s have some fun and really drive home that words are just vectors!</p>
+<hr>
+<h2>Video Walkthrough</h2>
+<p>Watch this fun exploration of word arithmetic:</p>
+<iframe src="https://share.descript.com/embed/gz3NfK2kCMl" width="640" height="360" frameborder="0" allowfullscreen></iframe>
+
+<hr>
+<h2>The Magic of Word Arithmetic</h2>
+<p>Remember: embeddings place similar words close together in vector space. This means we can do <strong>math with words</strong>!</p>
+<hr>
+<h2>The Classic Example</h2>
+<pre><code>king - man + woman ≈ queen
+</code></pre>
+<p><strong>Why it works:</strong></p>
+<pre><code>&quot;king&quot; embedding contains:
+  - Royalty concept
+  - Male concept
+  - Power concept
+
+Subtract &quot;man&quot;:
+  - Removes male concept
+
+Add &quot;woman&quot;:
+  - Adds female concept
+
+Result:
+  - Royalty + Female ≈ &quot;queen&quot;!
+</code></pre>
+<hr>
+<h2>Exercise: Try Word Math</h2>
+<h3>Setup</h3>
+<p>The exercise is already set up for you at: <code>app/scripts/exercises/vector-word-arithmetic.ts</code></p>
+<pre><code class="language-typescript">import { openaiClient } from &#39;../libs/openai/openai&#39;;
+
+async function getEmbedding(text: string): Promise&lt;number[]&gt; {
+	const response = await openaiClient.embeddings.create({
+		model: &#39;text-embedding-3-small&#39;,
+		input: text,
+	});
+	return response.data[0].embedding;
+}
+
+function addVectors(a: number[], b: number[]): number[] {
+	return a.map((val, i) =&gt; val + b[i]);
+}
+
+function subtractVectors(a: number[], b: number[]): number[] {
+	return a.map((val, i) =&gt; val - b[i]);
+}
+
+async function findClosestWord(
+	targetVector: number[],
+	candidateWords: string[]
+): Promise&lt;{ word: string; similarity: number }&gt; {
+	// Get embeddings for all candidates
+	const candidateEmbeddings = await Promise.all(
+		candidateWords.map(async (word) =&gt; ({
+			word,
+			embedding: await getEmbedding(word),
+		}))
+	);
+
+	// Find most similar
+	let best = { word: &#39;&#39;, similarity: -1 };
+	for (const candidate of candidateEmbeddings) {
+		const sim = cosineSimilarity(targetVector, candidate.embedding);
+		if (sim &gt; best.similarity) {
+			best = { word: candidate.word, similarity: sim };
+		}
+	}
+
+	return best;
+}
+</code></pre>
+<h3>Try These Equations</h3>
+<pre><code class="language-typescript">async function wordMathExamples() {
+	// Example 1: king - man + woman ≈ queen
+	console.log(&#39;\n🔮 Example 1: king - man + woman&#39;);
+	const king = await getEmbedding(&#39;king&#39;);
+	const man = await getEmbedding(&#39;man&#39;);
+	const woman = await getEmbedding(&#39;woman&#39;);
+
+	const result1 = addVectors(subtractVectors(king, man), woman);
+
+	const answer1 = await findClosestWord(result1, [
+		&#39;queen&#39;,
+		&#39;princess&#39;,
+		&#39;prince&#39;,
+		&#39;duke&#39;,
+		&#39;emperor&#39;,
+	]);
+
+	console.log(`Answer: ${answer1.word} (${answer1.similarity.toFixed(3)})`);
+	// Expected: queen
+
+	// Example 2: Paris - France + Italy ≈ Rome
+	console.log(&#39;\n🔮 Example 2: Paris - France + Italy&#39;);
+	const paris = await getEmbedding(&#39;Paris&#39;);
+	const france = await getEmbedding(&#39;France&#39;);
+	const italy = await getEmbedding(&#39;Italy&#39;);
+
+	const result2 = addVectors(subtractVectors(paris, france), italy);
+
+	const answer2 = await findClosestWord(result2, [
+		&#39;Rome&#39;,
+		&#39;Milan&#39;,
+		&#39;Venice&#39;,
+		&#39;Florence&#39;,
+		&#39;Naples&#39;,
+	]);
+
+	console.log(`Answer: ${answer2.word} (${answer2.similarity.toFixed(3)})`);
+	// Expected: Rome
+
+	// Example 3: walking - walk + swim ≈ swimming
+	console.log(&#39;\n🔮 Example 3: walking - walk + swim&#39;);
+	const walking = await getEmbedding(&#39;walking&#39;);
+	const walk = await getEmbedding(&#39;walk&#39;);
+	const swim = await getEmbedding(&#39;swim&#39;);
+
+	const result3 = addVectors(subtractVectors(walking, walk), swim);
+
+	const answer3 = await findClosestWord(result3, [
+		&#39;swimming&#39;,
+		&#39;swam&#39;,
+		&#39;swimmer&#39;,
+		&#39;swims&#39;,
+		&#39;diving&#39;,
+	]);
+
+	console.log(`Answer: ${answer3.word} (${answer3.similarity.toFixed(3)})`);
+	// Expected: swimming
+}
+
+// Run it!
+wordMathExamples();
+</code></pre>
+<h3>Run the Exercise</h3>
+<pre><code class="language-bash">yarn exercise:word-math
+</code></pre>
+<p>This runs the complete script at <code>app/scripts/exercises/vector-word-arithmetic.ts</code></p>
+<p><strong>Expected output:</strong></p>
+<pre><code>🔮 Example 1: king - man + woman
+Answer: queen (0.892)
+
+🔮 Example 2: Paris - France + Italy
+Answer: Rome (0.847)
+
+🔮 Example 3: walking - walk + swim
+Answer: swimming (0.923)
+</code></pre>
+<hr>
+<h2>Create Your Own Equations</h2>
+<p>Try these patterns:</p>
+<h3>Country → Capital</h3>
+<pre><code class="language-typescript">// Tokyo - Japan + Germany ≈ ?
+// Berlin!
+</code></pre>
+<h3>Adjective → Noun</h3>
+<pre><code class="language-typescript">// biggest - big + small ≈ ?
+// smallest!
+</code></pre>
+<h3>Verb Tenses</h3>
+<pre><code class="language-typescript">// running - run + eat ≈ ?
+// eating!
+</code></pre>
+<h3>Company → Product</h3>
+<pre><code class="language-typescript">// iPhone - Apple + Microsoft ≈ ?
+// Windows? Surface?
+</code></pre>
+<hr>
+<h2>What This Proves</h2>
+<p><strong>Words are truly just vectors!</strong></p>
+<ul>
+<li>Semantics encoded as numbers</li>
+<li>Relationships preserved in space</li>
+<li>Math operations make sense</li>
+<li>Similar meanings = similar vectors</li>
+</ul>
+<p>This is why RAG works:</p>
+<ol>
+<li>User query → vector</li>
+<li>Documents → vectors</li>
+<li>Find closest vectors</li>
+<li>Return matching documents</li>
+</ol>
+<p>The math handles the &quot;understanding&quot;!</p>
+<hr>
+<h2>Challenge: Build Your Own</h2>
+<p>Create 3 word equations and test them:</p>
+<pre><code class="language-typescript">async function myEquations() {
+	// Your equation 1:
+	// ...
+	// Your equation 2:
+	// ...
+	// Your equation 3:
+	// ...
+}
+</code></pre>
+<p><strong>Ideas:</strong></p>
+<ul>
+<li>Plurals: dog - dogs + cat ≈ ?</li>
+<li>Opposites: hot - cold + loud ≈ ?</li>
+<li>Professions: doctor - hospital + school ≈ ?</li>
+</ul>
+<hr>
+<h2>Why This Matters for RAG</h2>
+<p>Understanding word math helps you understand RAG:</p>
+<p><strong>When user asks:</strong> &quot;How do I use React hooks?&quot;</p>
+<p><strong>The system:</strong></p>
+<ol>
+<li>Converts query to vector</li>
+<li>That vector is &quot;near&quot; vectors for:<ul>
+<li>&quot;React useState tutorial&quot;</li>
+<li>&quot;Understanding React hooks&quot;</li>
+<li>&quot;Hooks in React&quot;</li>
+</ul>
+</li>
+<li>But &quot;far&quot; from:<ul>
+<li>&quot;Python data science&quot;</li>
+<li>&quot;CSS styling tips&quot;</li>
+</ul>
+</li>
+</ol>
+<p><strong>Result:</strong> Relevant documents retrieved!</p>
+<hr>
+<h2>What&#39;s Next</h2>
+<p>You now understand the math! Time to build the actual Pinecone integration.</p>
+
+</body>
+</html>

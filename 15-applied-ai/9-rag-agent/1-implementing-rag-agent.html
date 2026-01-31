@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1 Implementing Rag Agent</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+            background-color: #fff;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+        h1 { font-size: 2em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
+        h2 { font-size: 1.5em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
+        h3 { font-size: 1.25em; }
+        code {
+            background-color: #f6f8fa;
+            padding: 0.2em 0.4em;
+            margin: 0;
+            font-size: 85%;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+        }
+        pre {
+            background-color: #f6f8fa;
+            padding: 16px;
+            overflow: auto;
+            font-size: 85%;
+            line-height: 1.45;
+            border-radius: 6px;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            font-size: 100%;
+        }
+        blockquote {
+            padding: 0 1em;
+            color: #6a737d;
+            border-left: 0.25em solid #dfe2e5;
+            margin-left: 0;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 16px 0;
+        }
+        table th, table td {
+            padding: 6px 13px;
+            border: 1px solid #dfe2e5;
+        }
+        table tr:nth-child(2n) {
+            background-color: #f6f8fa;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        ul, ol {
+            padding-left: 2em;
+        }
+        hr {
+            height: 0.25em;
+            padding: 0;
+            margin: 24px 0;
+            background-color: #e1e4e8;
+            border: 0;
+        }
+    </style>
+</head>
+<body>
+<h1>Implementing the RAG Agent</h1>
+<p>Now let&#39;s implement the RAG agent that retrieves context from your documents and feeds it to the LLM for grounded answers.</p>
+<hr>
+<h2>Video Walkthrough</h2>
+<p>Watch this guide to implementing the RAG agent:</p>
+<iframe src="https://share.descript.com/embed/9skzqf8Bpwv" width="640" height="360" frameborder="0" allowfullscreen></iframe>
+
+<hr>
+<h2>What You&#39;ll Build</h2>
+<p>A working RAG agent that:</p>
+<ul>
+<li>Generates embeddings for user queries</li>
+<li>Retrieves relevant context from Pinecone</li>
+<li>Builds context-aware prompts</li>
+<li>Streams responses with document-grounded answers</li>
+</ul>
+<hr>
+<h2>The RAG Pipeline</h2>
+<p>Located at: <code>app/agents/rag.ts</code></p>
+<pre><code class="language-typescript">export async function ragAgent(request: AgentRequest): Promise&lt;AgentResponse&gt; {
+  // Step 1: Turn question into embedding
+  // Step 2: Search Pinecone for similar content
+  // Step 3: Extract text from results
+  // Step 4: Build prompt with context
+  // Step 5: Stream LLM response
+}
+</code></pre>
+<hr>
+<h2>Your Challenge</h2>
+<p>Open <code>app/agents/rag.ts</code> and implement the five TODO steps.</p>
+<h3>Step 1: Generate Embedding for the Query</h3>
+<p>Convert the user&#39;s query into a vector embedding using the same model used for documents:</p>
+<pre><code class="language-typescript">const embeddingResponse = await openaiClient.embeddings.create({
+  model: &#39;text-embedding-3-small&#39;,
+  input: request.query,
+});
+
+const embedding = embeddingResponse.data[0].embedding;
+</code></pre>
+<hr>
+<h3>Step 2: Query Pinecone for Similar Documents</h3>
+<p>Search Pinecone for the most relevant document chunks:</p>
+<pre><code class="language-typescript">const index = pineconeClient.Index(process.env.PINECONE_INDEX as string);
+
+const queryResponse = await index.query({
+  vector: embedding,
+  topK: 5,
+  includeMetadata: true,
+});
+</code></pre>
+<hr>
+<h3>Step 3: Extract Text Content from Results</h3>
+<p>Extract the text from retrieved documents:</p>
+<pre><code class="language-typescript">const retrievedContext = queryResponse.matches
+  .map((match) =&gt; match.metadata?.text)
+  .filter(Boolean)
+  .join(&#39;\n\n&#39;);
+</code></pre>
+<hr>
+<h3>Step 4: Build the System Prompt with Context</h3>
+<p>Create a system prompt that grounds the LLM in your retrieved context:</p>
+<pre><code class="language-typescript">const systemPrompt = `You are a helpful assistant that answers questions based on the provided context.
+
+Original User Request: &quot;${request.originalQuery}&quot;
+
+Refined Query: &quot;${request.query}&quot;
+
+Context from documentation:
+${retrievedContext}
+
+Use the context above to answer the user&#39;s question. If the context doesn&#39;t contain enough information, say so clearly.`;
+</code></pre>
+<hr>
+<h3>Step 5: Stream the Response</h3>
+<p>Stream the LLM response with the context-aware prompt:</p>
+<pre><code class="language-typescript">return streamText({
+  model: openai(&#39;gpt-4o&#39;),
+  system: systemPrompt,
+  prompt: `Context: ${retrievedContext}\n\nUser Query: ${request.query}`,
+});
+</code></pre>
+<hr>
+<h2>Testing Your RAG Agent</h2>
+<h3>Through the API</h3>
+<pre><code class="language-bash">curl -X POST http://localhost:3000/api/chat \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{
+    &quot;messages&quot;: [
+      {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;How do I use useState?&quot;}
+    ],
+    &quot;agent&quot;: &quot;rag&quot;,
+    &quot;query&quot;: &quot;How to use useState hook in React&quot;
+  }&#39;
+</code></pre>
+<h3>Check Retrieved Context</h3>
+<p>Add a console.log to see what was retrieved:</p>
+<pre><code class="language-typescript">console.log(&#39;Retrieved context:&#39;, retrievedContext);
+console.log(&#39;Number of matches:&#39;, queryResponse.matches.length);
+</code></pre>
+<hr>
+<h2>Complete Solution</h2>
+<details>
+<summary>Click to reveal the complete implementation</summary>
+
+<pre><code class="language-typescript">import { AgentRequest, AgentResponse } from &#39;./types&#39;;
+import { pineconeClient } from &#39;@/app/libs/pinecone&#39;;
+import { openaiClient } from &#39;@/app/libs/openai/openai&#39;;
+import { openai } from &#39;@ai-sdk/openai&#39;;
+import { streamText } from &#39;ai&#39;;
+
+export async function ragAgent(request: AgentRequest): Promise&lt;AgentResponse&gt; {
+  // Step 1: Generate embedding for the refined query
+  const embeddingResponse = await openaiClient.embeddings.create({
+    model: &#39;text-embedding-3-small&#39;,
+    input: request.query,
+  });
+
+  const embedding = embeddingResponse.data[0].embedding;
+
+  // Step 2: Query Pinecone for similar documents
+  const index = pineconeClient.Index(process.env.PINECONE_INDEX as string);
+
+  const queryResponse = await index.query({
+    vector: embedding,
+    topK: 5,
+    includeMetadata: true,
+  });
+
+  // Step 3: Extract the text content from results
+  const retrievedContext = queryResponse.matches
+    .map((match) =&gt; match.metadata?.text)
+    .filter(Boolean)
+    .join(&#39;\n\n&#39;);
+
+  // Step 4: Build the system prompt with context
+  const systemPrompt = `You are a helpful assistant that answers questions based on the provided context.
+
+Original User Request: &quot;${request.originalQuery}&quot;
+
+Refined Query: &quot;${request.query}&quot;
+
+Context from documentation:
+${retrievedContext}
+
+Use the context above to answer the user&#39;s question. If the context doesn&#39;t contain enough information, say so clearly.`;
+
+  // Step 5: Stream the response
+  return streamText({
+    model: openai(&#39;gpt-4o&#39;),
+    system: systemPrompt,
+    prompt: `Context: ${retrievedContext}\n\nUser Query: ${request.query}`,
+  });
+}
+</code></pre>
+</details>
+
+<hr>
+<h2>What You Learned</h2>
+<p>✅ How to generate embeddings for queries<br>✅ How to perform semantic search with Pinecone<br>✅ How to build context-aware prompts<br>✅ How to stream responses with retrieved context</p>
+<hr>
+<h2>What&#39;s Next?</h2>
+<p>In the next module, you&#39;ll learn about <strong>re-ranking</strong> - a technique to improve retrieval quality by intelligently filtering results.</p>
+
+</body>
+</html>

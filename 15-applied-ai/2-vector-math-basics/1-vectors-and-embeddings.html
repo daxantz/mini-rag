@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1 Vectors And Embeddings</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+            background-color: #fff;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+        h1 { font-size: 2em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
+        h2 { font-size: 1.5em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
+        h3 { font-size: 1.25em; }
+        code {
+            background-color: #f6f8fa;
+            padding: 0.2em 0.4em;
+            margin: 0;
+            font-size: 85%;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+        }
+        pre {
+            background-color: #f6f8fa;
+            padding: 16px;
+            overflow: auto;
+            font-size: 85%;
+            line-height: 1.45;
+            border-radius: 6px;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            font-size: 100%;
+        }
+        blockquote {
+            padding: 0 1em;
+            color: #6a737d;
+            border-left: 0.25em solid #dfe2e5;
+            margin-left: 0;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 16px 0;
+        }
+        table th, table td {
+            padding: 6px 13px;
+            border: 1px solid #dfe2e5;
+        }
+        table tr:nth-child(2n) {
+            background-color: #f6f8fa;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        ul, ol {
+            padding-left: 2em;
+        }
+        hr {
+            height: 0.25em;
+            padding: 0;
+            margin: 24px 0;
+            background-color: #e1e4e8;
+            border: 0;
+        }
+    </style>
+</head>
+<body>
+<h1>Vectors and Embeddings: Words to Numbers</h1>
+<p>Understanding vectors is crucial for RAG systems. Don&#39;t worry - we&#39;ll keep it practical and visual!</p>
+<hr>
+<h2>Video Walkthrough</h2>
+<p>Watch these introductions to vectors and embeddings:</p>
+<p><strong>Vectors and Embeddings Explained:</strong></p>
+<iframe src="https://share.descript.com/embed/zz3e0kMLiO6" width="640" height="360" frameborder="0" allowfullscreen></iframe>
+
+<hr>
+<h2>What You&#39;ll Learn</h2>
+<ul>
+<li>What vectors are and why they matter</li>
+<li>How text becomes numbers (embeddings)</li>
+<li>Why cosine similarity works</li>
+<li>Basic vector operations</li>
+</ul>
+<hr>
+<h2>Why Vector Math for RAG?</h2>
+<p>RAG systems need to find similar content. To do that:</p>
+<pre><code>Text → Vectors → Measure Similarity → Find Matches
+</code></pre>
+<p>The math makes similarity measurable!</p>
+<hr>
+<h2>What is a Vector?</h2>
+<p>A vector is just a list of numbers:</p>
+<pre><code class="language-typescript">// 2D vector (x, y coordinates)
+const vector2D = [3, 4];
+
+// 3D vector (x, y, z)
+const vector3D = [1, 2, 3];
+
+// Text embedding (512 dimensions!)
+const embedding = [0.1, -0.3, 0.8, 0.2, ...];
+</code></pre>
+<p><strong>Think of it as:</strong> A point in space, or a direction from the origin.</p>
+<hr>
+<h2>From Text to Vectors</h2>
+<h3>How Embeddings Work</h3>
+<pre><code>&quot;artificial intelligence&quot;
+        ↓
+Embedding Model
+        ↓
+[0.1, -0.3, 0.8, ..., 0.2]  (512 numbers)
+</code></pre>
+<p><strong>The magic:</strong> Similar concepts → similar vectors</p>
+<pre><code class="language-typescript">&quot;dog&quot;   → [0.1, 0.5, -0.2, ...]
+&quot;puppy&quot; → [0.2, 0.4, -0.1, ...]  // Close to &quot;dog&quot;!
+&quot;car&quot;   → [-0.3, 0.1, 0.8, ...]  // Far from &quot;dog&quot;
+</code></pre>
+<h3>Using OpenAI&#39;s Embedding API</h3>
+<pre><code class="language-typescript">const response = await openai.embeddings.create({
+	model: &#39;text-embedding-3-small&#39;,
+	input: &#39;artificial intelligence&#39;,
+});
+
+const embedding = response.data[0].embedding;
+// [0.1, -0.3, 0.8, ..., 0.2] (512 numbers)
+</code></pre>
+<hr>
+<h2>Measuring Similarity</h2>
+<h3>The Dot Product</h3>
+<p>Multiply corresponding numbers, add them up:</p>
+<pre><code class="language-typescript">function dotProduct(a: number[], b: number[]): number {
+	return a.reduce((sum, val, i) =&gt; sum + val * b[i], 0);
+}
+
+const v1 = [1, 2, 3];
+const v2 = [4, 5, 6];
+dotProduct(v1, v2); // (1×4) + (2×5) + (3×6) = 32
+</code></pre>
+<p><strong>Interpretation:</strong></p>
+<ul>
+<li>Higher value = more similar</li>
+<li>Zero = unrelated</li>
+<li>Negative = opposite</li>
+</ul>
+<h3>Cosine Similarity (The Standard)</h3>
+<p>Normalize the dot product to get a score from -1 to 1:</p>
+<pre><code class="language-typescript">function magnitude(v: number[]): number {
+	return Math.sqrt(v.reduce((sum, val) =&gt; sum + val * val, 0));
+}
+
+function cosineSimilarity(a: number[], b: number[]): number {
+	const dot = dotProduct(a, b);
+	return dot / (magnitude(a) * magnitude(b));
+}
+</code></pre>
+<p><strong>Scale:</strong></p>
+<ul>
+<li><code>1.0</code> = Identical direction</li>
+<li><code>0.0</code> = Unrelated (perpendicular)</li>
+<li><code>-1.0</code> = Opposite direction</li>
+</ul>
+<hr>
+<h2>Visual Intuition</h2>
+<pre><code>     Vector A
+        /
+       /
+      /_____ Vector B
+
+Small angle = High similarity
+Large angle = Low similarity
+</code></pre>
+<p>Cosine similarity measures the angle between vectors:</p>
+<ul>
+<li>Same direction → angle 0° → similarity = 1</li>
+<li>Perpendicular → angle 90° → similarity = 0</li>
+<li>Opposite → angle 180° → similarity = -1</li>
+</ul>
+<hr>
+<h2>Why 512 Dimensions?</h2>
+<p>Embeddings have many dimensions (512, 1536, 3072):</p>
+<ul>
+<li><strong>More dimensions = richer meaning</strong></li>
+<li><strong>Each dimension captures a concept:</strong><ul>
+<li>Dim 1: &quot;How technical?&quot;</li>
+<li>Dim 2: &quot;How positive?&quot;</li>
+<li>Dim 50: &quot;Related to animals?&quot;</li>
+<li>...</li>
+</ul>
+</li>
+</ul>
+<p>It&#39;s a balance:</p>
+<ul>
+<li>More = better quality</li>
+<li>Fewer = faster computation</li>
+</ul>
+<hr>
+<h2>Finding Similar Documents</h2>
+<pre><code class="language-typescript">// Documents
+const docs = [
+	&#39;Python is a programming language&#39;,
+	&#39;JavaScript is for web development&#39;,
+	&#39;Machine learning uses algorithms&#39;,
+	&#39;Dogs are loyal pets&#39;,
+];
+
+// Get embeddings for all
+const docEmbeddings = await Promise.all(docs.map((doc) =&gt; getEmbedding(doc)));
+
+// Query
+const query = &#39;What programming languages exist?&#39;;
+const queryEmbedding = await getEmbedding(query);
+
+// Calculate similarities
+const similarities = docEmbeddings.map((docEmbed) =&gt;
+	cosineSimilarity(queryEmbedding, docEmbed)
+);
+
+// Results: [0.8, 0.7, 0.3, 0.1]
+// &quot;Python is a programming language&quot; wins!
+</code></pre>
+<hr>
+<h2>Essential Watching</h2>
+<p>For beautiful visual explanations:</p>
+<p><strong>3Blue1Brown&#39;s Linear Algebra Series:</strong></p>
+<ol>
+<li><a href="https://www.youtube.com/watch?v=fNk_zzaMoSs">Vectors, what even are they?</a></li>
+<li><a href="https://www.youtube.com/watch?v=LyGKycYT2v0">Dot products and duality</a></li>
+</ol>
+<p>These videos make the concepts crystal clear!</p>
+<hr>
+<h2>Quick Quiz</h2>
+<p>Which pairs would have high cosine similarity?</p>
+<ol>
+<li>&quot;I love pizza&quot; vs &quot;Pizza is delicious&quot;</li>
+<li>&quot;Machine learning algorithms&quot; vs &quot;AI and neural networks&quot;</li>
+<li>&quot;The weather is sunny&quot; vs &quot;Database optimization&quot;</li>
+</ol>
+<details>
+<summary>Answers</summary>
+
+<ol>
+<li>✅ <strong>High</strong> - Both about pizza, positive sentiment</li>
+<li>✅ <strong>High</strong> - Both about AI/ML concepts</li>
+<li>❌ <strong>Low</strong> - Completely different topics</li>
+</ol>
+</details>
+
+<hr>
+<h2>What You Learned</h2>
+<p>✅ Vectors are lists of numbers<br>✅ Embeddings convert text to vectors<br>✅ Similar text → similar vectors<br>✅ Cosine similarity measures angle between vectors<br>✅ This is how RAG finds relevant documents</p>
+<hr>
+<h2>What&#39;s Next</h2>
+<p>Now let&#39;s implement similarity calculations and do some word math!</p>
+
+</body>
+</html>

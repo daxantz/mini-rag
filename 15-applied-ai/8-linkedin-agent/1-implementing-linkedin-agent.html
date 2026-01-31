@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1 Implementing Linkedin Agent</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+            background-color: #fff;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+        h1 { font-size: 2em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
+        h2 { font-size: 1.5em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
+        h3 { font-size: 1.25em; }
+        code {
+            background-color: #f6f8fa;
+            padding: 0.2em 0.4em;
+            margin: 0;
+            font-size: 85%;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+        }
+        pre {
+            background-color: #f6f8fa;
+            padding: 16px;
+            overflow: auto;
+            font-size: 85%;
+            line-height: 1.45;
+            border-radius: 6px;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            font-size: 100%;
+        }
+        blockquote {
+            padding: 0 1em;
+            color: #6a737d;
+            border-left: 0.25em solid #dfe2e5;
+            margin-left: 0;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 16px 0;
+        }
+        table th, table td {
+            padding: 6px 13px;
+            border: 1px solid #dfe2e5;
+        }
+        table tr:nth-child(2n) {
+            background-color: #f6f8fa;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        ul, ol {
+            padding-left: 2em;
+        }
+        hr {
+            height: 0.25em;
+            padding: 0;
+            margin: 24px 0;
+            background-color: #e1e4e8;
+            border: 0;
+        }
+    </style>
+</head>
+<body>
+<h1>LinkedIn Agent</h1>
+<p>Now that we have your fine-tuned model from module 5, we&#39;ll implement an agent that uses it to respond in your personal LinkedIn style with streaming responses.</p>
+<hr>
+<h2>Video Walkthrough</h2>
+<p>Watch this guide to implementing the LinkedIn agent:</p>
+<iframe src="https://share.descript.com/embed/oSYwAxsn4AO" width="640" height="360" frameborder="0" allowfullscreen></iframe>
+
+<hr>
+<h2>What You&#39;ll Build</h2>
+<p>An agent that:</p>
+<ul>
+<li>Uses your fine-tuned model</li>
+<li>Streams responses for a better user experience</li>
+<li>Responds in your personal conversational style</li>
+</ul>
+<h2>Implementation Steps</h2>
+<p>The agent implementation is in <code>app/agents/linkedin.ts</code>.</p>
+<h3>1. Configure Your Fine-Tuned Model</h3>
+<p>Add your fine-tuned model ID to your <code>.env.local</code>:</p>
+<pre><code class="language-bash">OPENAI_FINETUNED_MODEL=ft:gpt-4o-mini-2024-07-18:your-org:your-model:id
+</code></pre>
+<p>You can find this ID in your OpenAI dashboard under Fine-tuning, or from the API response when you created the fine-tune.</p>
+<h3>2. Implement the Agent</h3>
+<p>Your agent needs to:</p>
+<ol>
+<li><strong>Get the model ID</strong> from environment variables (<code>process.env.OPENAI_FINETUNED_MODEL</code>)</li>
+<li><strong>Build a system prompt</strong> that defines the agent&#39;s role as a LinkedIn copywriter</li>
+<li><strong>Use <code>prompt</code></strong> to provide the user&#39;s original request and refined query as context</li>
+<li><strong>Use <code>streamText()</code></strong> from the Vercel AI SDK to stream the response</li>
+</ol>
+<p>The TODOs in <code>app/agents/linkedin.ts</code> guide you through each step.</p>
+<h2>Key Concepts</h2>
+<h3>Streaming Responses with Prompt</h3>
+<p>Using <code>streamText()</code> provides a better user experience by showing the response as it&#39;s generated. Here&#39;s the solution:</p>
+<pre><code class="language-typescript">return streamText({
+	model: openai(process.env.OPENAI_FINETUNED_MODEL!),
+	system: &#39;You are a professional linkedin copywriter to create high engagement linkedin posts&#39;,
+	prompt: `
+    Original User Request: ${_request.originalQuery}
+    Refined Query: ${_request.query}
+  `,
+});
+</code></pre>
+<p>Key points:</p>
+<ul>
+<li>Return the <code>streamText()</code> result directly (no need to call additional methods or await)</li>
+<li>Use <strong><code>prompt</code></strong> (not <code>messages</code>) to provide context - this is simpler for single-turn agent responses</li>
+<li>The <code>prompt</code> includes both the original user request and the refined query from the selector agent</li>
+<li>The <code>system</code> parameter sets the agent&#39;s role and behavior</li>
+<li>The fine-tuned model is passed using <code>openai(process.env.OPENAI_FINETUNED_MODEL!)</code></li>
+</ul>
+<h2>Resources</h2>
+<ul>
+<li><a href="https://sdk.vercel.ai/docs/reference/ai-sdk-core/stream-text">Vercel AI SDK - streamText</a></li>
+<li><a href="https://platform.openai.com/docs/guides/fine-tuning">OpenAI Fine-tuning Guide</a></li>
+<li><a href="https://platform.openai.com/docs/guides/fine-tuning/use-a-fine-tuned-model">Using Fine-tuned Models</a></li>
+</ul>
+<h2>Testing</h2>
+<p>Once implemented, the selector agent will route requests to generate LinkedIn posts to this LinkedIn agent automatically.</p>
+
+</body>
+</html>

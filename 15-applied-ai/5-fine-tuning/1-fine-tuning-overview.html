@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1 Fine Tuning Overview</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+            background-color: #fff;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+        h1 { font-size: 2em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
+        h2 { font-size: 1.5em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
+        h3 { font-size: 1.25em; }
+        code {
+            background-color: #f6f8fa;
+            padding: 0.2em 0.4em;
+            margin: 0;
+            font-size: 85%;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+        }
+        pre {
+            background-color: #f6f8fa;
+            padding: 16px;
+            overflow: auto;
+            font-size: 85%;
+            line-height: 1.45;
+            border-radius: 6px;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            font-size: 100%;
+        }
+        blockquote {
+            padding: 0 1em;
+            color: #6a737d;
+            border-left: 0.25em solid #dfe2e5;
+            margin-left: 0;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 16px 0;
+        }
+        table th, table td {
+            padding: 6px 13px;
+            border: 1px solid #dfe2e5;
+        }
+        table tr:nth-child(2n) {
+            background-color: #f6f8fa;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        ul, ol {
+            padding-left: 2em;
+        }
+        hr {
+            height: 0.25em;
+            padding: 0;
+            margin: 24px 0;
+            background-color: #e1e4e8;
+            border: 0;
+        }
+    </style>
+</head>
+<body>
+<h1>Fine-Tuning Overview: Teaching AI Your Voice</h1>
+<p>Before we build the LinkedIn agent, you need to understand fine-tuning - a powerful technique for making AI models sound like YOU. And also the pitfalls!</p>
+<hr>
+<h2>Video Walkthrough</h2>
+<p>Watch this overview of RAG vs Fine-Tuning to understand when to use each approach:</p>
+<iframe src="https://share.descript.com/embed/n9XnMJvmku2" width="640" height="360" frameborder="0" allowfullscreen></iframe>
+
+<hr>
+<h2>What is Fine-Tuning?</h2>
+<p><strong>The Basic Idea:</strong><br>Take a trained AI model and teach it your specific patterns, style, and knowledge by training it on your examples.</p>
+<p><strong>Real-World Analogy:</strong></p>
+<p>Imagine hiring a new employee:</p>
+<p><strong>Base Model = New College Graduate</strong></p>
+<ul>
+<li>Has general education</li>
+<li>Knows basic principles</li>
+<li>Generic communication style</li>
+<li>Needs to learn your company&#39;s way</li>
+</ul>
+<p><strong>Fine-Tuned Model = Experienced Team Member</strong></p>
+<ul>
+<li>Still has general education</li>
+<li>PLUS learned your processes</li>
+<li>PLUS mimics your company culture</li>
+<li>PLUS understands your terminology</li>
+</ul>
+<p>Fine-tuning is that training period, but for AI.</p>
+<hr>
+<h2>How Fine-Tuning Works</h2>
+<h3>Step 1: Start with Base Model</h3>
+<pre><code>GPT-4o-mini (Base)
+├─ Trained on billions of web pages
+├─ Knows general knowledge
+├─ Can write in many styles
+└─ No specific &quot;you&quot; knowledge
+</code></pre>
+<h3>Step 2: Prepare Your Training Data</h3>
+<pre><code>Your LinkedIn Posts + Responses
+├─ Question: &quot;How do I network?&quot;
+├─ Your Answer: &quot;Networking isn&#39;t about collecting contacts...&quot;
+├─ Question: &quot;LinkedIn profile tips?&quot;
+└─ Your Answer: &quot;Your headline is prime real estate...&quot;
+</code></pre>
+<p>100+ examples of YOUR questions and YOUR answers.</p>
+<h3>Step 3: Fine-Tune</h3>
+<pre><code>Base Model + Your Data → Fine-Tuned Model
+</code></pre>
+<p>OpenAI adjusts the model&#39;s internal weights to match YOUR patterns.</p>
+<h3>Step 4: Use Your Model</h3>
+<pre><code>Fine-Tuned Model
+├─ Still knows general knowledge
+├─ NOW writes like you
+├─ NOW uses your examples
+└─ NOW matches your tone
+</code></pre>
+<hr>
+<h2>When to Use Fine-Tuning vs. RAG</h2>
+<p>This is a critical decision point!</p>
+<h3>Use Fine-Tuning When:</h3>
+<p>✅ <strong>Consistent Style Required</strong></p>
+<ul>
+<li>&quot;Write marketing copy in our brand voice&quot;</li>
+<li>&quot;Respond to customer support like our team does&quot;</li>
+<li>&quot;Generate code following our patterns&quot;</li>
+</ul>
+<p>✅ <strong>Repeated Tasks</strong></p>
+<ul>
+<li>Classification (spam vs. not spam)</li>
+<li>Formatting (structured output)</li>
+<li>Translation (with specific terminology)</li>
+</ul>
+<p>✅ <strong>You Have Training Data</strong></p>
+<ul>
+<li>Need 100+ quality examples minimum</li>
+<li>More is better (500+ is ideal)</li>
+</ul>
+<h3>Use RAG When:</h3>
+<p>✅ <strong>Latest Information Needed</strong></p>
+<ul>
+<li>Documentation that changes</li>
+<li>Current events</li>
+<li>Frequently updated content</li>
+</ul>
+<p>✅ <strong>Large Knowledge Base</strong></p>
+<ul>
+<li>Thousands of documents</li>
+<li>Can&#39;t fit in training data</li>
+<li>Dynamic content</li>
+</ul>
+<p>✅ <strong>Factual Accuracy Critical</strong></p>
+<ul>
+<li>Can verify sources</li>
+<li>Can trace answers back to documents</li>
+<li>Can update without retraining</li>
+</ul>
+<h3>Why We Use Both</h3>
+<p><strong>LinkedIn Agent (Fine-Tuned):</strong></p>
+<ul>
+<li>YOUR professional voice</li>
+<li>YOUR communication style</li>
+<li>Consistent tone across responses</li>
+<li>Trained on your LinkedIn content</li>
+</ul>
+<p><strong>RAG Agent (Base Model + Retrieval):</strong></p>
+<ul>
+<li>Up-to-date documentation</li>
+<li>Latest technical content</li>
+<li>Factual, sourced answers</li>
+<li>Easy to update (just add docs)</li>
+</ul>
+<hr>
+<h2>The Cost-Benefit Analysis</h2>
+<h3>Fine-Tuning Costs</h3>
+<p><strong>Training:</strong> One-time cost based on data size</p>
+<ul>
+<li>~$8 per 1M tokens for gpt-4o-mini</li>
+<li>Your 100 examples ≈ $0.10-1.00</li>
+</ul>
+<p><strong>Usage:</strong> Slightly more expensive than base</p>
+<ul>
+<li>Base: $0.150 per 1M input tokens</li>
+<li>Fine-tuned: $0.300 per 1M input tokens</li>
+<li>But worth it for quality!</li>
+</ul>
+<h3>When It&#39;s Worth It</h3>
+<p>✅ Quality improvements justify 2x cost<br>✅ Task is repeated frequently<br>✅ Style consistency matters<br>✅ Base model struggles with your use case</p>
+<h3>When It&#39;s Not Worth It</h3>
+<p>❌ One-off tasks<br>❌ Frequently changing requirements<br>❌ Small datasets (overfitting risk)<br>❌ Base model already does great</p>
+<hr>
+<h2>Understanding Training Data Format</h2>
+<p>Fine-tuning uses JSONL (JSON Lines) format - one JSON object per line:</p>
+<pre><code class="language-jsonl">{&quot;messages&quot;: [{&quot;role&quot;: &quot;system&quot;, &quot;content&quot;: &quot;You are a professional LinkedIn advisor&quot;}, {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;How do I write a good headline?&quot;}, {&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: &quot;Your headline is the first thing people see...&quot;}]}
+{&quot;messages&quot;: [{&quot;role&quot;: &quot;system&quot;, &quot;content&quot;: &quot;You are a professional LinkedIn advisor&quot;}, {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Networking tips?&quot;}, {&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: &quot;Quality over quantity when networking...&quot;}]}
+</code></pre>
+<p><strong>Each line contains:</strong></p>
+<ul>
+<li><strong>system</strong>: Instructions/context (consistent across examples)</li>
+<li><strong>user</strong>: The question/input</li>
+<li><strong>assistant</strong>: YOUR response (this is what the model learns)</li>
+</ul>
+<p><strong>Key Points:</strong></p>
+<ul>
+<li>Same system message across examples (establishes role)</li>
+<li>User messages should cover variety of questions</li>
+<li>Assistant responses should be YOUR actual style</li>
+<li>More examples = better results</li>
+</ul>
+<hr>
+<h2>What Makes Good Training Data?</h2>
+<h3>✅ Good Training Data</h3>
+<p><strong>Diverse Questions:</strong></p>
+<pre><code class="language-jsonl">{&quot;messages&quot;: [..., &quot;user&quot;: &quot;How do I network?&quot;]}
+{&quot;messages&quot;: [..., &quot;user&quot;: &quot;Profile tips?&quot;]}
+{&quot;messages&quot;: [..., &quot;user&quot;: &quot;What makes a good headline?&quot;]}
+{&quot;messages&quot;: [..., &quot;user&quot;: &quot;Cold outreach strategy?&quot;]}
+</code></pre>
+<p><strong>Consistent Voice:</strong></p>
+<pre><code>All assistant responses sound like the same person
+Similar tone, style, vocabulary
+Consistent formatting preferences
+</code></pre>
+<p><strong>Quality Over Quantity:</strong></p>
+<ul>
+<li>100 great examples &gt; 1000 mediocre ones</li>
+<li>Each example teaches the model YOUR way</li>
+<li>Clean, well-written responses</li>
+</ul>
+<h3>❌ Bad Training Data</h3>
+<p><strong>Inconsistent:</strong></p>
+<pre><code>Some responses are formal, some casual
+Different people wrote the responses
+Varying quality levels
+</code></pre>
+<p><strong>Too Similar:</strong></p>
+<pre><code class="language-jsonl">{&quot;messages&quot;: [..., &quot;user&quot;: &quot;How to network?&quot;]}
+{&quot;messages&quot;: [..., &quot;user&quot;: &quot;How do I network?&quot;]}
+{&quot;messages&quot;: [..., &quot;user&quot;: &quot;Ways to network?&quot;]}
+</code></pre>
+<p>Same question, slightly reworded (no variety)</p>
+<p><strong>Low Quality:</strong></p>
+<pre><code>Typos and grammar errors
+Incomplete responses
+Generic/unhelpful answers
+</code></pre>
+<hr>
+<h2>The Fine-Tuning Process</h2>
+<p><strong>Overview:</strong></p>
+<ol>
+<li>Prepare training data (JSONL file)</li>
+<li>Upload to OpenAI</li>
+<li>Start fine-tuning job</li>
+<li>Wait (minutes to hours depending on size)</li>
+<li>Get fine-tuned model ID</li>
+<li>Use in your application</li>
+</ol>
+<p><strong>What Happens During Training:</strong></p>
+<pre><code>OpenAI takes your base model
+Processes each training example
+Adjusts internal weights to match your patterns
+Creates a new model (yours specifically)
+Gives you a model ID: ft:gpt-4o-mini-2024-07-18:org:name:abc123
+</code></pre>
+<p><strong>Time Required:</strong></p>
+<ul>
+<li>Small dataset (100 examples): 10-20 minutes</li>
+<li>Medium dataset (1000 examples): 1-2 hours</li>
+<li>Large dataset (10,000 examples): Several hours</li>
+</ul>
+<p>You only do this once (or when you want to update with new data).</p>
+<hr>
+<h2>What You&#39;ll Do Next</h2>
+<p>In the next section, you&#39;ll:</p>
+<ol>
+<li>Look at the training data format</li>
+<li>Run the fine-tuning script</li>
+<li>Monitor the training job</li>
+<li>Get your fine-tuned model ID</li>
+<li>Configure your app to use it</li>
+</ol>
+<p>Then you&#39;ll implement the LinkedIn agent that uses this model!</p>
+
+</body>
+</html>

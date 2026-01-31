@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kickoff Session Guide</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+            background-color: #fff;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+        h1 { font-size: 2em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
+        h2 { font-size: 1.5em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
+        h3 { font-size: 1.25em; }
+        code {
+            background-color: #f6f8fa;
+            padding: 0.2em 0.4em;
+            margin: 0;
+            font-size: 85%;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+        }
+        pre {
+            background-color: #f6f8fa;
+            padding: 16px;
+            overflow: auto;
+            font-size: 85%;
+            line-height: 1.45;
+            border-radius: 6px;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            font-size: 100%;
+        }
+        blockquote {
+            padding: 0 1em;
+            color: #6a737d;
+            border-left: 0.25em solid #dfe2e5;
+            margin-left: 0;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 16px 0;
+        }
+        table th, table td {
+            padding: 6px 13px;
+            border: 1px solid #dfe2e5;
+        }
+        table tr:nth-child(2n) {
+            background-color: #f6f8fa;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        ul, ol {
+            padding-left: 2em;
+        }
+        hr {
+            height: 0.25em;
+            padding: 0;
+            margin: 24px 0;
+            background-color: #e1e4e8;
+            border: 0;
+        }
+    </style>
+</head>
+<body>
+<h1>Week 0 Kickoff Session Guide</h1>
+<p><strong>Duration:</strong> 1 hour</p>
+<p><strong>Format:</strong> Live video call (Zoom/Google Meet)</p>
+<p><strong>Goal:</strong> Ensure all students are set up and ready to start Week 1 on Monday</p>
+<hr>
+<h2>Pre-Session Checklist (Instructor)</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Test your own setup (run through all Week 0 steps)</li>
+<li><input disabled="" type="checkbox"> Prepare screen sharing</li>
+<li><input disabled="" type="checkbox"> Have the starter repository open</li>
+<li><input disabled="" type="checkbox"> Have troubleshooting commands ready to copy/paste</li>
+<li><input disabled="" type="checkbox"> Set up breakout rooms (if large cohort)</li>
+<li><input disabled="" type="checkbox"> Prepare Slack channel with pinned setup resources</li>
+</ul>
+<hr>
+<h2>Session Agenda</h2>
+<h3>1. Welcome &amp; Introductions (10 minutes)</h3>
+<p><strong>Instructor Introduction:</strong></p>
+<ul>
+<li>Brief intro about yourself</li>
+<li>Your experience with RAG/AI</li>
+<li>Why you&#39;re excited about teaching this course</li>
+</ul>
+<p><strong>Set Expectations:</strong></p>
+<ul>
+<li>&quot;This is a hands-on, project-based course&quot;</li>
+<li>&quot;We learn by building, not just watching&quot;</li>
+<li>&quot;Expect to spend ~1 hour/day for weeks 1-3, more in week 4&quot;</li>
+<li>&quot;You&#39;ll have a deployed RAG app by the end&quot;</li>
+</ul>
+<p><strong>Student Introductions (if small cohort &lt;10 people):</strong></p>
+<ul>
+<li>Name</li>
+<li>Background</li>
+<li>What they want to build</li>
+<li>One thing they&#39;re nervous about</li>
+</ul>
+<p><strong>Poll (if large cohort &gt;10 people):</strong></p>
+<ul>
+<li>&quot;Who has worked with LLMs before?&quot; (show of hands)</li>
+<li>&quot;Who has used OpenAI API?&quot;</li>
+<li>&quot;Who has deployed a Next.js app?&quot;</li>
+<li>&quot;Who completed all Week 0 setup steps?&quot; 👈 <strong>Important!</strong></li>
+</ul>
+<hr>
+<h3>2. Troubleshooting Setup Issues (30 minutes)</h3>
+<p><strong>Quick status check:</strong><br>&quot;Let&#39;s do a quick poll in chat:</p>
+<ul>
+<li>Type ✅ if your setup is 100% working</li>
+<li>Type ⚠️ if you have a minor issue</li>
+<li>Type ❌ if you&#39;re blocked&quot;</li>
+</ul>
+<h4>For ✅ (Setup Complete):</h4>
+<ul>
+<li>&quot;Great! You can help others while we debug&quot;</li>
+<li>Encourage them to pair up in breakout rooms if needed</li>
+<li>Give them an optional task: &quot;Try modifying the starter project&#39;s UI&quot;</li>
+</ul>
+<h4>For ⚠️ and ❌ (Need Help):</h4>
+<p><strong>Common Issues &amp; Solutions:</strong></p>
+<p><strong>Issue #1: OpenAI API Key Not Working</strong></p>
+<pre><code class="language-bash"># Test the key
+curl https://api.openai.com/v1/models \
+  -H &quot;Authorization: Bearer YOUR_KEY&quot;
+</code></pre>
+<p>Troubleshooting:</p>
+<ul>
+<li>Check for extra spaces in <code>.env.local</code></li>
+<li>Verify credits in OpenAI account</li>
+<li>Try regenerating the key</li>
+</ul>
+<p><strong>Issue #2: Pinecone Connection Failed</strong></p>
+<p>Live demo:</p>
+<ol>
+<li>Open Pinecone dashboard</li>
+<li>Show index status (must be &quot;Ready&quot;)</li>
+<li>Verify index dimensions (1536)</li>
+<li>Copy API key again</li>
+<li>Check <code>PINECONE_INDEX</code> name matches exactly</li>
+</ol>
+<p><strong>Issue #3: npm install Failing</strong></p>
+<pre><code class="language-bash"># Clear cache and reinstall
+rm -rf node_modules package-lock.json
+npm cache clean --force
+npm install
+</code></pre>
+<p><strong>Issue #4: Port Already in Use</strong></p>
+<pre><code class="language-bash"># Find process using port 3000
+lsof -ti:3000
+
+# Kill it
+kill -9 $(lsof -ti:3000)
+
+# Or use different port
+npm run dev -- -p 3001
+</code></pre>
+<p><strong>Issue #5: Environment Variables Not Loading</strong></p>
+<pre><code class="language-bash"># Verify .env.local exists
+ls -la | grep .env
+
+# Check contents (hide sensitive values)
+cat .env.local | sed &#39;s/=.*/=***/&#39;
+
+# Restart dev server (env changes require restart)
+</code></pre>
+<p><strong>Breakout Rooms (if needed):</strong></p>
+<ul>
+<li>Large cohorts: Split into groups of 3-4</li>
+<li>Each group debugs together</li>
+<li>Instructor rotates through rooms</li>
+<li>Students help each other (best learning!)</li>
+</ul>
+<hr>
+<h3>3. Starter Project Walkthrough (15 minutes)</h3>
+<p><strong>Screen share the starter project:</strong></p>
+<pre><code>rag-starter-project/
+├── app/
+│   ├── api/              👈 &quot;You&#39;ll build API routes here&quot;
+│   ├── components/       👈 &quot;React components for the UI&quot;
+│   └── lib/              👈 &quot;Utility functions and configs&quot;
+├── scripts/              👈 &quot;Helper scripts for data processing&quot;
+├── .env.example          👈 &quot;Template for your .env.local&quot;
+└── README.md             👈 &quot;Setup instructions&quot;
+</code></pre>
+<p><strong>Key Points to Cover:</strong></p>
+<ol>
+<li><p><strong>This is MINIMAL scaffolding:</strong></p>
+<ul>
+<li>&quot;We provide the structure, you build the brain&quot;</li>
+<li>&quot;Week 1: You&#39;ll build similarity search from scratch&quot;</li>
+<li>&quot;Weeks 2-3: You&#39;ll add to this starter&quot;</li>
+<li>&quot;Week 4: You might start fresh or fork this&quot;</li>
+</ul>
+</li>
+<li><p><strong>What&#39;s Included:</strong></p>
+<ul>
+<li>Next.js 14 App Router setup</li>
+<li>TypeScript configuration</li>
+<li>OpenAI and Pinecone clients (just setup, no logic)</li>
+<li>Basic UI components (chat interface)</li>
+<li>Tailwind CSS for styling</li>
+</ul>
+</li>
+<li><p><strong>What&#39;s NOT Included (you&#39;ll build):</strong></p>
+<ul>
+<li>❌ Chunking logic</li>
+<li>❌ Embedding generation</li>
+<li>❌ RAG pipeline</li>
+<li>❌ Agent system</li>
+<li>❌ Fine-tuning code</li>
+</ul>
+</li>
+<li><p><strong>Quick Code Tour:</strong></p>
+</li>
+</ol>
+<pre><code class="language-typescript">// app/lib/openai.ts - Just the client setup
+import OpenAI from &#39;openai&#39;;
+
+export const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+</code></pre>
+<pre><code class="language-typescript">// app/lib/pinecone.ts - Just the client setup
+import { Pinecone } from &#39;@pinecone-database/pinecone&#39;;
+
+export const pc = new Pinecone({
+  apiKey: process.env.PINECONE_API_KEY || &#39;&#39;,
+});
+</code></pre>
+<ol start="5">
+<li><strong>Run the dev server together:</strong></li>
+</ol>
+<pre><code class="language-bash">npm run dev
+</code></pre>
+<p>Show the default page at <code>localhost:3000</code>.</p>
+<hr>
+<h3>4. Week 1 Preview (5 minutes)</h3>
+<p><strong>What Students Will Learn:</strong></p>
+<p>&quot;Starting Monday, we dive into Week 1: RAG Foundations &amp; Vector Math&quot;</p>
+<p><strong>Monday-Thursday (45 min/day):</strong></p>
+<ul>
+<li>What is RAG and why it matters</li>
+<li>Vector math fundamentals (dot product, cosine similarity)</li>
+<li>How embeddings work</li>
+<li>Setting up Pinecone</li>
+</ul>
+<p><strong>Friday Live Session:</strong></p>
+<ul>
+<li>We&#39;ll build a similarity search engine from scratch together</li>
+<li>No fancy libraries - pure TypeScript</li>
+<li>You&#39;ll see RAG work with ~20 lines of code</li>
+</ul>
+<p><strong>Weekend Assignment:</strong></p>
+<ul>
+<li>Build your own similarity search tool</li>
+<li>10-15 documents of your choice</li>
+<li>Implement cosine similarity yourself</li>
+</ul>
+<p><strong>How to Prepare:</strong><br>&quot;Don&#39;t need to prepare! Just show up Monday ready to learn.&quot;</p>
+<p><strong>Optional Pre-reading:</strong></p>
+<ul>
+<li>Skim <code>/week-1-foundations/README.md</code></li>
+<li>Watch 3Blue1Brown&#39;s &quot;Vectors, what even are they?&quot;</li>
+<li>Play around with the starter project</li>
+</ul>
+<hr>
+<h3>5. Q&amp;A &amp; Wrap-Up (remaining time)</h3>
+<p><strong>Open Floor for Questions:</strong></p>
+<p>Common questions to expect:</p>
+<ul>
+<li><p>&quot;What if I fall behind?&quot;</p>
+<ul>
+<li>Office hours every Monday</li>
+<li>Slack channel for async help</li>
+<li>Recorded sessions available</li>
+<li>Catch-up support provided</li>
+</ul>
+</li>
+<li><p>&quot;How technical will this get?&quot;</p>
+<ul>
+<li>Focus on practical application</li>
+<li>Math is intuitive, not rigorous</li>
+<li>TypeScript knowledge assumed</li>
+<li>No ML/AI background needed</li>
+</ul>
+</li>
+<li><p>&quot;Can I work with a partner?&quot;</p>
+<ul>
+<li>Study groups encouraged!</li>
+<li>Individual submissions required</li>
+<li>Collaboration is great for learning</li>
+</ul>
+</li>
+<li><p>&quot;What happens after the course?&quot;</p>
+<ul>
+<li>You&#39;ll have a portfolio project</li>
+<li>Alumni Slack channel</li>
+<li>Optional advanced topics sessions</li>
+<li>Open-source project opportunities</li>
+</ul>
+</li>
+</ul>
+<p><strong>Action Items:</strong></p>
+<p>For Students:</p>
+<ul>
+<li><input disabled="" type="checkbox"> Join the Slack workspace (link in chat)</li>
+<li><input disabled="" type="checkbox"> Post introduction in #introductions</li>
+<li><input disabled="" type="checkbox"> Review Week 1 README if curious</li>
+<li><input disabled="" type="checkbox"> Monday: First async lesson goes live at 9 AM</li>
+</ul>
+<p>For Instructor:</p>
+<ul>
+<li><input disabled="" type="checkbox"> Share recording link (for those who couldn&#39;t attend)</li>
+<li><input disabled="" type="checkbox"> Post troubleshooting recap in Slack</li>
+<li><input disabled="" type="checkbox"> Follow up individually with anyone still blocked</li>
+<li><input disabled="" type="checkbox"> Schedule Monday office hours</li>
+</ul>
+<p><strong>Closing Motivation:</strong></p>
+<p>&quot;By the end of this course, you&#39;ll:</p>
+<ul>
+<li>Understand how RAG actually works under the hood</li>
+<li>Build a production-ready AI application</li>
+<li>Have a portfolio project to show employers</li>
+<li>Be the go-to AI person in your organization</li>
+</ul>
+<p>This is ambitious, but totally doable. We&#39;ll build together, help each other, and ship something amazing.</p>
+<p>See you Monday! 🚀&quot;</p>
+<hr>
+<h2>After the Session</h2>
+<h3>Immediate (Within 1 hour):</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Post recording link in Slack</li>
+<li><input disabled="" type="checkbox"> Share slides/resources</li>
+<li><input disabled="" type="checkbox"> Pin common troubleshooting solutions</li>
+<li><input disabled="" type="checkbox"> Send welcome email with:<ul>
+<li>Week 1 schedule</li>
+<li>Slack channel links</li>
+<li>Office hours Zoom link</li>
+</ul>
+</li>
+</ul>
+<h3>Within 24 hours:</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Follow up with students who had issues</li>
+<li><input disabled="" type="checkbox"> Create #setup-help channel for ongoing questions</li>
+<li><input disabled="" type="checkbox"> Post reminder about Monday&#39;s first lesson</li>
+</ul>
+<h3>Before Week 1:</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Test all Week 1 materials</li>
+<li><input disabled="" type="checkbox"> Prepare live session demos</li>
+<li><input disabled="" type="checkbox"> Set up office hours calendar</li>
+<li><input disabled="" type="checkbox"> Create assignment submission form</li>
+</ul>
+<hr>
+<h2>Tips for a Great Session</h2>
+<p><strong>Do:</strong></p>
+<ul>
+<li>✅ Be enthusiastic and encouraging</li>
+<li>✅ Share your screen often</li>
+<li>✅ Pause for questions regularly</li>
+<li>✅ Use breakout rooms for personalized help</li>
+<li>✅ Make students feel capable</li>
+</ul>
+<p><strong>Don&#39;t:</strong></p>
+<ul>
+<li>❌ Rush through troubleshooting</li>
+<li>❌ Assume everyone has same tech comfort level</li>
+<li>❌ Skip over &quot;obvious&quot; steps</li>
+<li>❌ Make anyone feel bad for being stuck</li>
+<li>❌ Go over time (respect their schedules)</li>
+</ul>
+<p><strong>If Running Over Time:</strong></p>
+<ul>
+<li>Offer to stay on for anyone with urgent issues</li>
+<li>Schedule follow-up 1-on-1s for complex problems</li>
+<li>Use office hours for extended debugging</li>
+</ul>
+<hr>
+<h2>Emergency Contact Plan</h2>
+<p>If major issues come up during Week 0:</p>
+<ol>
+<li><strong>Slack outage</strong>: Backup to email list</li>
+<li><strong>Starter repo issues</strong>: Have fork ready</li>
+<li><strong>Mass API failures</strong>: Have local-only alternatives</li>
+<li><strong>Your availability</strong>: Have backup instructor contact</li>
+</ol>
+<hr>
+<h2>Success Metrics</h2>
+<p>Week 0 is successful if:</p>
+<ul>
+<li><input disabled="" type="checkbox"> <blockquote>
+<p>90% of students completed setup</p>
+</blockquote>
+</li>
+<li><input disabled="" type="checkbox"> All students have access to Slack</li>
+<li><input disabled="" type="checkbox"> Everyone ran <code>npm run test:setup</code> successfully</li>
+<li><input disabled="" type="checkbox"> Students feel excited and supported</li>
+<li><input disabled="" type="checkbox"> Clear next steps for Week 1</li>
+</ul>
+<hr>
+<p><strong>Ready to kick off an amazing cohort! You&#39;ve got this! 🎉</strong></p>
+
+</body>
+</html>
