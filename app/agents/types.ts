@@ -21,7 +21,7 @@ export interface AgentRequest {
 	messages: Message[]; // Conversation history
 }
 
-export type AgentResponse = StreamTextResult<Record<string, never>, never>;
+export type AgentResponse = StreamTextResult<any, any>;
 
 export interface AgentConfig {
 	name: string;

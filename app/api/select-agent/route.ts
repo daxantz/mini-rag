@@ -10,18 +10,24 @@ const selectAgentSchema = z.object({
 });
 
 const agentSelectionSchema = z.object({
-	agent: agentTypeSchema,
+	agent: agentTypeSchema.nullable(),
+	clarification: z
+		.string()
+		.nullable()
+		.describe(
+			'clarification for the user query if the user query is not clear or not related to writing a LinkedIn post or generating a linkedin post',
+		),
 	query: z
 		.string()
 		.describe(
-			'refine query for agent and remove any unnecessary words and correct spelling'
+			'refine query for agent and remove any unnecessary words and correct spelling',
 		),
 	confidence: z
 		.number()
 		.min(1)
 		.max(10)
 		.describe(
-			'confidence score between 1 and 10 that the agent is the best fit for the user query'
+			'confidence score between 1 and 10 that the agent is the best fit for the user query',
 		),
 });
 
@@ -49,10 +55,11 @@ export async function POST(req: NextRequest) {
 					Pick the best agent based on the user query
 					The agents are: ${JSON.stringify(agentDescriptions)}
 
-					User query: "Who is the president of the United States?"
-					Agent: "rag"
-					Query: "Who is the president of the United States?"
-					Confidence: 1
+					RAG Agent: For generating a linkedin post based on a user query.
+					LinkedIn Agent: For polishing a written post in a certain voice and tone for LinkedIn. The user will provide a topic and you will write a post about it.
+
+					If the user query is not clear then ask for clarification and do NOT pick an agent
+					Instead clarify their request AND suggest the types of requests that are possible (e.g. "I can help you with writing a LinkedIn post or generating a linkedin post")
 					`,
 				},
 				...recentMessages,
@@ -64,23 +71,25 @@ export async function POST(req: NextRequest) {
 		});
 
 		// TODO: Step 2 - Extract the parsed output
-		const { agent, query, confidence } = response.output_parsed ?? {};
+		const { agent, query, confidence, clarification } =
+			response.output_parsed ?? {};
 
 		console.log(
 			'response',
-			JSON.stringify(response.output_parsed, null, 2)
+			JSON.stringify(response.output_parsed, null, 2),
 		);
 
 		return NextResponse.json({
 			agent,
 			query,
+			clarification,
 			confidence,
 		});
 	} catch (error) {
 		console.error('Error selecting agent:', error);
 		return NextResponse.json(
 			{ error: 'Failed to select agent' },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }

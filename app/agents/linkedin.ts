@@ -3,7 +3,7 @@ import { openai } from '@ai-sdk/openai';
 import { streamText } from 'ai';
 
 export async function linkedInAgent(
-	request: AgentRequest
+	request: AgentRequest,
 ): Promise<AgentResponse> {
 	// TODO: Step 1 - Get the fine-tuned model ID
 	// Access process.env.OPENAI_FINETUNED_MODEL

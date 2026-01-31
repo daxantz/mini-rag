@@ -100,7 +100,19 @@ export default function Home() {
 				body: JSON.stringify({ messages: currentMessages }),
 			});
 
-			const { agent, query } = await agentResponse.json();
+			const { agent, query, clarification } = await agentResponse.json();
+
+			if (!agent) {
+				setMessages((prev) => [
+					...prev,
+					{
+						id: uuidv4(),
+						role: 'assistant',
+						content: clarification,
+					},
+				]);
+				return;
+			}
 
 			// Step 2: Make direct API call
 			const response = await fetch('/api/chat', {
@@ -149,8 +161,8 @@ export default function Home() {
 						prev.map((msg) =>
 							msg.id === assistantMessageId
 								? { ...msg, content: assistantResponse }
-								: msg
-						)
+								: msg,
+						),
 					);
 				}
 			}
