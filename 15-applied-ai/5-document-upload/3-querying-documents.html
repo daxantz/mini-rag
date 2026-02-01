@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Querying Documents from Pinecone</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      color: #333;
+    }
+
+    h1 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 32px;
+      font-weight: bold;
+    }
+
+    h2 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    h3 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    h4 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    h5 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    h6 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    p {
+      margin: 12px 0;
+      line-height: 1.6;
+    }
+
+    a {
+      color: #0066cc;
+      text-decoration: underline;
+    }
+
+    strong {
+      font-weight: bold;
+    }
+
+    em {
+      font-style: italic;
+    }
+
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.9em;
+    }
+
+    pre {
+      background-color: #f4f4f4;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      margin: 20px 0;
+    }
+
+    pre code {
+      background-color: transparent;
+      padding: 0;
+    }
+
+    blockquote {
+      border-left: 4px solid #ddd;
+      margin: 20px 0;
+      padding: 10px 20px;
+      background-color: #f9f9f9;
+    }
+
+    hr {
+      border: none;
+      border-top: 2px solid #eee;
+      margin: 30px 0;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 20px 0;
+    }
+
+    iframe {
+      max-width: 100%;
+      margin: 20px 0;
+    }
+
+    details {
+      margin: 20px 0;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border-radius: 5px;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    ol, ul {
+      margin: 10px 0;
+      padding-left: 30px;
+    }
+
+    li {
+      margin: 5px 0;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 20px 0;
+      border: 1px solid #ddd;
+    }
+
+    th, td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f4f4f4;
+      font-weight: bold;
+    }
+
+    input[type="checkbox"] {
+      margin-right: 5px;
+    }
+  </style>
+</head>
+<body>
+<h1>Querying Documents from Pinecone</h1>
+<p>Now that you understand how to upload documents to Pinecone, it&#39;s time to learn how to retrieve them! This is the &quot;read&quot; side of your RAG system.</p>
+<hr>
+<h2>Video Walkthrough</h2>
+<p>Watch this explanation of querying documents:</p>
+<iframe src="https://share.descript.com/embed/bcBSmqqgDJ8" width="640" height="360" frameborder="0" allowfullscreen></iframe>
+
+<hr>
+<h2>What You&#39;ll Learn</h2>
+<ul>
+<li>How vector similarity search works</li>
+<li>Querying Pinecone with embeddings</li>
+<li>Understanding similarity scores</li>
+<li>Building a test API route to query documents</li>
+<li>Hands-on challenge: Implement your own query route</li>
+</ul>
+<hr>
+<h2>The Retrieval Flow</h2>
+<pre><code>User Query: &quot;How do React hooks work?&quot;
+        ↓
+1. Convert query to embedding (OpenAI)
+        ↓
+2. Search Pinecone for similar vectors
+        ↓
+3. Pinecone returns top K matches with scores
+        ↓
+4. Extract metadata (actual text content)
+        ↓
+Return relevant document chunks
+</code></pre>
+<p><strong>Key insight:</strong> We never search by text directly. We search by <em>semantic similarity</em> using vector math!</p>
+<hr>
+<h2>Understanding Vector Similarity Search</h2>
+<h3>How It Works</h3>
+<p>When you query Pinecone:</p>
+<ol>
+<li><p><strong>Your query becomes a vector</strong></p>
+<pre><code>&quot;How do React hooks work?&quot;
+→ [0.23, -0.15, 0.89, ..., 0.42]  // 512 numbers
+</code></pre>
+</li>
+<li><p><strong>Pinecone compares to all stored vectors</strong></p>
+<pre><code>Stored doc 1: [0.25, -0.14, 0.87, ..., 0.40]  // Similar!
+Stored doc 2: [0.10, 0.92, -0.31, ..., -0.15]  // Not similar
+Stored doc 3: [0.24, -0.16, 0.91, ..., 0.43]  // Very similar!
+</code></pre>
+</li>
+<li><p><strong>Returns top K most similar</strong></p>
+<pre><code>1. Doc 3 (score: 0.95) - &quot;React hooks introduction...&quot;
+2. Doc 1 (score: 0.92) - &quot;Understanding useState...&quot;
+3. Doc 7 (score: 0.87) - &quot;useEffect guide...&quot;
+</code></pre>
+</li>
+</ol>
+<h3>Similarity Scores</h3>
+<p><strong>Score range:</strong> 0.0 to 1.0</p>
+<ul>
+<li><strong>1.0</strong> = Identical vectors (perfect match)</li>
+<li><strong>0.8-0.95</strong> = Highly similar (great results)</li>
+<li><strong>0.6-0.8</strong> = Moderately similar (decent results)</li>
+<li><strong>&lt; 0.6</strong> = Low similarity (may not be relevant)</li>
+</ul>
+<hr>
+<h2>Using the searchDocuments Function</h2>
+<p>We&#39;ve already created a helper function in <code>app/libs/pinecone.ts</code>:</p>
+<pre><code class="language-typescript">export const searchDocuments = async (
+	query: string,
+	topK: number = 3
+): Promise&lt;ScoredPineconeRecord&lt;RecordMetadata&gt;[]&gt; =&gt; {
+	// 1. Get reference to your index
+	const index = pineconeClient.Index(process.env.PINECONE_INDEX!);
+
+	// 2. Convert query to embedding using OpenAI
+	const queryEmbedding = await openaiClient.embeddings.create({
+		model: &#39;text-embedding-3-small&#39;,
+		dimensions: 512,
+		input: query,
+	});
+
+	const embedding = queryEmbedding.data[0].embedding;
+
+	// 3. Query Pinecone with the embedding
+	const docs = await index.query({
+		vector: embedding,
+		topK,
+		includeMetadata: true, // IMPORTANT: Get the actual text!
+	});
+
+	return docs.matches;
+};
+</code></pre>
+<h3>Breaking It Down</h3>
+<p><strong>Step 1: Get the index</strong></p>
+<pre><code class="language-typescript">const index = pineconeClient.Index(process.env.PINECONE_INDEX!);
+</code></pre>
+<ul>
+<li>Connect to your specific Pinecone index</li>
+<li>Same index you uploaded to</li>
+</ul>
+<p><strong>Step 2: Create query embedding</strong></p>
+<pre><code class="language-typescript">const queryEmbedding = await openaiClient.embeddings.create({
+	model: &#39;text-embedding-3-small&#39;, // MUST match upload model
+	dimensions: 512, // MUST match index dimensions
+	input: query,
+});
+</code></pre>
+<p>⚠️ <strong>Critical:</strong> Model and dimensions MUST match what you used during upload!</p>
+<p><strong>Step 3: Query Pinecone</strong></p>
+<pre><code class="language-typescript">const docs = await index.query({
+	vector: embedding, // Your query vector
+	topK, // How many results (default 3)
+	includeMetadata: true, // Include text content
+});
+</code></pre>
+<p><strong>Step 4: Return matches</strong></p>
+<pre><code class="language-typescript">return docs.matches;
+</code></pre>
+<p>Each match contains:</p>
+<ul>
+<li><code>id</code> - Unique document ID</li>
+<li><code>score</code> - Similarity score (0-1)</li>
+<li><code>metadata</code> - Your stored data (text, URL, etc.)</li>
+</ul>
+<hr>
+<h2>Understanding the Response</h2>
+<p>When you call <code>searchDocuments()</code>, you get:</p>
+<pre><code class="language-typescript">[
+	{
+		id: &#39;react-docs-chunk-42&#39;,
+		score: 0.94,
+		metadata: {
+			source: &#39;https://react.dev/learn/hooks&#39;,
+			content:
+				&#39;React Hooks let you use state and other React features...&#39;,
+			chunkIndex: 42,
+			totalChunks: 150,
+		},
+	},
+	{
+		id: &#39;react-docs-chunk-15&#39;,
+		score: 0.89,
+		metadata: {
+			source: &#39;https://react.dev/reference/react/useState&#39;,
+			content: &#39;useState is a React Hook that lets you add state...&#39;,
+			chunkIndex: 15,
+			totalChunks: 150,
+		},
+	},
+	{
+		id: &#39;typescript-docs-chunk-8&#39;,
+		score: 0.76,
+		metadata: {
+			source: &#39;https://typescriptlang.org/docs&#39;,
+			content: &#39;TypeScript provides static typing...&#39;,
+			chunkIndex: 8,
+			totalChunks: 200,
+		},
+	},
+];
+</code></pre>
+<p><strong>Notice:</strong></p>
+<ul>
+<li>Sorted by score (highest first)</li>
+<li>Metadata contains the actual text</li>
+<li>Each result is from a different chunk</li>
+</ul>
+<hr>
+<h2>Your Challenge: Build a Test Route</h2>
+<p>Let&#39;s create a simple API route to test document retrieval!</p>
+<h3>Task: Implement the <code>/api/rag-test/route.ts</code></h3>
+<p>We&#39;ve created a skeleton file at <code>app/api/rag-test/route.ts</code> for you to implement.</p>
+<p><strong>Requirements:</strong></p>
+<ol>
+<li>Accept POST requests with a query</li>
+<li>Use <code>searchDocuments()</code> to find relevant docs</li>
+<li>Return results with scores and content</li>
+<li>Handle errors gracefully</li>
+</ol>
+<h3>Current Implementation</h3>
+<p>Open <code>app/api/rag-test/route.ts</code> and you&#39;ll see a basic implementation:</p>
+<pre><code class="language-typescript">import { searchDocuments } from &#39;@/app/libs/pinecone&#39;;
+import { NextRequest, NextResponse } from &#39;next/server&#39;;
+
+export async function POST(request: NextRequest) {
+	const body = await request.json();
+	const { query, topK } = body;
+
+	const results = await searchDocuments(query, topK);
+
+	const formattedResults = results.map((doc) =&gt; ({
+		id: doc.id,
+		score: doc.score,
+		content: doc.metadata?.text || &#39;&#39;,
+		source: doc.metadata?.source || &#39;unknown&#39;,
+		chunkIndex: doc.metadata?.chunkIndex,
+		totalChunks: doc.metadata?.totalChunks,
+	}));
+
+	return NextResponse.json({
+		query,
+		resultsCount: formattedResults.length,
+		results: formattedResults,
+	});
+}
+</code></pre>
+<h3>Your Tasks</h3>
+<p><strong>Add the following improvements:</strong></p>
+<ol>
+<li><p><strong>Add try/catch error handling</strong></p>
+<ul>
+<li>Wrap the function body in a try/catch block</li>
+<li>Log errors with <code>console.error</code></li>
+<li>Return a 500 status code with error details</li>
+</ul>
+</li>
+<li><p><strong>Add input validation</strong></p>
+<ul>
+<li>Check if <code>query</code> exists and is a string</li>
+<li>Return a 400 status code if invalid</li>
+<li>Set a default value for <code>topK</code> (e.g., 5)</li>
+</ul>
+</li>
+<li><p><strong>Add better error messages</strong></p>
+<ul>
+<li>Clear validation error messages</li>
+<li>Helpful error responses for debugging</li>
+</ul>
+</li>
+</ol>
+<h3>Step 3: Test Your Route</h3>
+<p>Once implemented, test it with curl:</p>
+<pre><code class="language-bash">curl -X POST http://localhost:3000/api/rag-test \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{&quot;query&quot;: &quot;How do React hooks work?&quot;, &quot;topK&quot;: 3}&#39;
+</code></pre>
+<p><strong>Expected response:</strong></p>
+<pre><code class="language-json">{
+	&quot;results&quot;: [
+		{
+			&quot;id&quot;: &quot;react-docs-chunk-42&quot;,
+			&quot;score&quot;: 0.94,
+			&quot;content&quot;: &quot;React Hooks let you use state...&quot;,
+			&quot;source&quot;: &quot;https://react.dev/learn/hooks&quot;
+		},
+		{
+			&quot;id&quot;: &quot;react-docs-chunk-15&quot;,
+			&quot;score&quot;: 0.89,
+			&quot;content&quot;: &quot;useState is a React Hook...&quot;,
+			&quot;source&quot;: &quot;https://react.dev/reference/react/useState&quot;
+		}
+	]
+}
+</code></pre>
+<hr>
+<h2>Video Solution Walkthrough</h2>
+<p>Watch the solution explanation:</p>
+<iframe src="https://share.descript.com/embed/cOqfPDaYyTy" width="640" height="360" frameborder="0" allowfullscreen></iframe>
+
+<hr>
+<h2>Complete Solution</h2>
+<details>
+<summary>Click to reveal complete solution</summary>
+
+<pre><code class="language-typescript">import { NextRequest, NextResponse } from &#39;next/server&#39;;
+import { searchDocuments } from &#39;@/app/libs/pinecone&#39;;
+
+export async function POST(request: NextRequest) {
+	try {
+		// Parse request body
+		const body = await request.json();
+		const { query, topK = 5 } = body;
+
+		// Validate query
+		if (!query || typeof query !== &#39;string&#39;) {
+			return NextResponse.json(
+				{ error: &#39;Query is required and must be a string&#39; },
+				{ status: 400 }
+			);
+		}
+
+		// Search for similar documents
+		const results = await searchDocuments(query, topK);
+
+		// Format results for response
+		const formattedResults = results.map((doc) =&gt; ({
+			id: doc.id,
+			score: doc.score,
+			content: doc.metadata?.text || &#39;&#39;,
+			source: doc.metadata?.source || &#39;unknown&#39;,
+			chunkIndex: doc.metadata?.chunkIndex,
+			totalChunks: doc.metadata?.totalChunks,
+		}));
+
+		return NextResponse.json({
+			query,
+			resultsCount: formattedResults.length,
+			results: formattedResults,
+		});
+	} catch (error) {
+		console.error(&#39;Search error:&#39;, error);
+		return NextResponse.json(
+			{
+				error: &#39;Failed to search documents&#39;,
+				details: (error as Error).message,
+			},
+			{ status: 500 }
+		);
+	}
+}
+</code></pre>
+</details>
+
+<hr>
+<h2>Testing Different Queries</h2>
+<p>Try these queries to see how semantic search works:</p>
+<h3>Technical Queries</h3>
+<pre><code class="language-bash"># Query about React hooks
+curl -X POST http://localhost:3000/api/rag-test \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{&quot;query&quot;: &quot;How do I use useState in React?&quot;}&#39;
+
+# Query about TypeScript
+curl -X POST http://localhost:3000/api/rag-test \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{&quot;query&quot;: &quot;What are TypeScript generics?&quot;}&#39;
+</code></pre>
+<h3>Semantic Similarity</h3>
+<pre><code class="language-bash"># These should return similar results:
+curl -X POST http://localhost:3000/api/rag-test \
+  -d &#39;{&quot;query&quot;: &quot;React state management&quot;}&#39;
+
+curl -X POST http://localhost:3000/api/rag-test \
+  -d &#39;{&quot;query&quot;: &quot;How to manage state in React&quot;}&#39;
+
+curl -X POST http://localhost:3000/api/rag-test \
+  -d &#39;{&quot;query&quot;: &quot;useState hook tutorial&quot;}&#39;
+</code></pre>
+<p><strong>Why similar results?</strong></p>
+<ul>
+<li>Embeddings capture <em>meaning</em>, not just keywords</li>
+<li>&quot;state management&quot; and &quot;manage state&quot; are semantically similar</li>
+<li>Vector similarity finds conceptually related content</li>
+</ul>
+<hr>
+<h2>Understanding topK Parameter</h2>
+<p>The <code>topK</code> parameter controls how many results to return:</p>
+<pre><code class="language-typescript">// Get top 3 results (most relevant)
+await searchDocuments(query, 3);
+
+// Get top 10 results (broader context)
+await searchDocuments(query, 10);
+
+// Default is 3
+await searchDocuments(query);
+</code></pre>
+<p><strong>Guidelines:</strong></p>
+<ul>
+<li><strong>topK = 3-5:</strong> Focused, high-quality results</li>
+<li><strong>topK = 5-10:</strong> More context, some noise</li>
+<li><strong>topK &gt; 10:</strong> Lots of context, potentially less relevant</li>
+</ul>
+<p><strong>For RAG systems:</strong></p>
+<ul>
+<li>Start with 3-5 chunks</li>
+<li>Experiment to find optimal number</li>
+<li>More isn&#39;t always better (token limits!)</li>
+</ul>
+<hr>
+<h2>Common Issues and Solutions</h2>
+<h3>Issue: Empty Results</h3>
+<pre><code class="language-json">{ &quot;results&quot;: [] }
+</code></pre>
+<p><strong>Causes:</strong></p>
+<ul>
+<li>No documents uploaded yet</li>
+<li>Query embedding model mismatch</li>
+<li>Index is wrong</li>
+</ul>
+<p><strong>Solutions:</strong></p>
+<ol>
+<li>Check documents are uploaded: Open Pinecone console</li>
+<li>Verify embedding model matches upload</li>
+<li>Check <code>PINECONE_INDEX</code> environment variable</li>
+</ol>
+<h3>Issue: Low Similarity Scores</h3>
+<pre><code class="language-json">{ &quot;score&quot;: 0.42, &quot;content&quot;: &quot;...&quot; }
+</code></pre>
+<p><strong>Causes:</strong></p>
+<ul>
+<li>Query doesn&#39;t match uploaded content</li>
+<li>Different domain/topic</li>
+<li>Poor quality embeddings</li>
+</ul>
+<p><strong>Solutions:</strong></p>
+<ol>
+<li>Upload relevant documents</li>
+<li>Rephrase query to be more specific</li>
+<li>Check document quality</li>
+</ol>
+<h3>Issue: Wrong Content Returned</h3>
+<p><strong>Causes:</strong></p>
+<ul>
+<li>Chunking strategy issues</li>
+<li>Documents from wrong domain</li>
+<li>Need more specific query</li>
+</ul>
+<p><strong>Solutions:</strong></p>
+<ol>
+<li>Improve chunking (better overlap)</li>
+<li>Filter by metadata (add source filter)</li>
+<li>Increase topK to see more results</li>
+</ol>
+<hr>
+<h2>Advanced: Filtering by Metadata</h2>
+<p>Pinecone supports metadata filtering:</p>
+<pre><code class="language-typescript">const docs = await index.query({
+	vector: embedding,
+	topK: 5,
+	includeMetadata: true,
+	filter: {
+		source: { $eq: &#39;https://react.dev&#39; }, // Only React docs
+	},
+});
+</code></pre>
+<p><strong>Use cases:</strong></p>
+<ul>
+<li>Filter by source URL</li>
+<li>Filter by date uploaded</li>
+<li>Filter by content type</li>
+<li>Filter by tags</li>
+</ul>
+<hr>
+<h2>Experiment: Compare Search Strategies</h2>
+<h3>Experiment 1: Different topK Values</h3>
+<pre><code class="language-typescript">// Test with different topK values
+const results3 = await searchDocuments(query, 3);
+const results5 = await searchDocuments(query, 5);
+const results10 = await searchDocuments(query, 10);
+
+// Compare:
+// - Lowest score in each set
+// - Relevance of bottom results
+// - Total tokens if passed to LLM
+</code></pre>
+<h3>Experiment 2: Query Variations</h3>
+<pre><code class="language-typescript">const queries = [
+	&#39;React hooks&#39;,
+	&#39;How to use React hooks&#39;,
+	&#39;React hooks tutorial for beginners&#39;,
+	&#39;useState and useEffect in React&#39;,
+];
+
+// Do they return the same documents?
+// Which query gives best results?
+</code></pre>
+<h3>Experiment 3: Score Thresholds</h3>
+<pre><code class="language-typescript">// Only return results above threshold
+const results = await searchDocuments(query, 10);
+const highQuality = results.filter((doc) =&gt; doc.score &gt; 0.8);
+
+// How many results pass the threshold?
+// What&#39;s the optimal threshold?
+</code></pre>
+<hr>
+<h2>What You&#39;ve Learned</h2>
+<p>✅ How vector similarity search works<br>✅ Using the <code>searchDocuments()</code> function<br>✅ Understanding similarity scores<br>✅ Building an API route for testing<br>✅ Debugging common issues<br>✅ The importance of topK parameter</p>
+<hr>
+<h2>What&#39;s Next?</h2>
+<p>Now that you can:</p>
+<ol>
+<li>✅ Upload documents (Module 2)</li>
+<li>✅ Query documents (This module)</li>
+</ol>
+<p>You&#39;re ready for:</p>
+<ul>
+<li><strong>Agent Architecture</strong> - Build intelligent routing</li>
+<li><strong>RAG Agent</strong> - Combine retrieval + generation</li>
+<li><strong>Chat Interface</strong> - Create user-facing app</li>
+</ul>
+<p>The foundation of your RAG system is complete!</p>
+
+</body>
+</html>

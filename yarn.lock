@@ -3281,7 +3281,7 @@ co@^4.6.0:
 
 cohere-ai@^7.20.0:
   version "7.20.0"
-  resolved "https://registry.npmjs.org/cohere-ai/-/cohere-ai-7.20.0.tgz"
+  resolved "https://registry.yarnpkg.com/cohere-ai/-/cohere-ai-7.20.0.tgz#5d350747b4a24e8855b66475f1f4908c4908240e"
   integrity sha512-h/3h3pcLXRUmkzp/W+/FWViEMcAFtSZ8YayCTFQXpib112uNSj3feApOtJg7v9lreWR1t7gznhE6N9KNCX5FOA==
   dependencies:
     "@aws-crypto/sha256-js" "^5.2.0"

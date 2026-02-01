@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pre-Course Homework: Foundations</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      color: #333;
+    }
+
+    h1 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 32px;
+      font-weight: bold;
+    }
+
+    h2 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    h3 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    h4 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    h5 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    h6 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    p {
+      margin: 12px 0;
+      line-height: 1.6;
+    }
+
+    a {
+      color: #0066cc;
+      text-decoration: underline;
+    }
+
+    strong {
+      font-weight: bold;
+    }
+
+    em {
+      font-style: italic;
+    }
+
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.9em;
+    }
+
+    pre {
+      background-color: #f4f4f4;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      margin: 20px 0;
+    }
+
+    pre code {
+      background-color: transparent;
+      padding: 0;
+    }
+
+    blockquote {
+      border-left: 4px solid #ddd;
+      margin: 20px 0;
+      padding: 10px 20px;
+      background-color: #f9f9f9;
+    }
+
+    hr {
+      border: none;
+      border-top: 2px solid #eee;
+      margin: 30px 0;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 20px 0;
+    }
+
+    iframe {
+      max-width: 100%;
+      margin: 20px 0;
+    }
+
+    details {
+      margin: 20px 0;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border-radius: 5px;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    ol, ul {
+      margin: 10px 0;
+      padding-left: 30px;
+    }
+
+    li {
+      margin: 5px 0;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 20px 0;
+      border: 1px solid #ddd;
+    }
+
+    th, td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f4f4f4;
+      font-weight: bold;
+    }
+
+    input[type="checkbox"] {
+      margin-right: 5px;
+    }
+  </style>
+</head>
+<body>
+<h1>Pre-Course Homework: Foundations</h1>
+<p><strong>⏰ Complete BEFORE Week 0 Kickoff Session</strong></p>
+<p><strong>Time Required:</strong> 3-4 hours (spread over a few days)</p>
+<p><strong>Goal:</strong> Build foundational knowledge of vectors, embeddings, LLMs, and RAG concepts so you&#39;re ready to build on Day 1.</p>
+<hr>
+<h2>Why This Matters</h2>
+<p>This course moves fast. These videos and readings give you the mental models you need to understand:</p>
+<ul>
+<li>Why vectors are the foundation of RAG</li>
+<li>How embeddings capture meaning</li>
+<li>How LLMs actually work</li>
+<li>Why we need agents and observability</li>
+</ul>
+<p><strong>Watch these BEFORE the course starts</strong>, and the technical implementation will make much more sense!</p>
+<hr>
+<h2>Part 1: Linear Algebra Foundations (90 minutes)</h2>
+<p>These 3Blue1Brown videos are the best visual explanations of vectors and dot products. You&#39;ll see why embeddings work.</p>
+<h3>Video 1: Vectors - What Are They?</h3>
+<p><strong>Duration:</strong> ~10 minutes<br><strong>Link:</strong> <a href="https://www.youtube.com/watch?v=fNk_zzaMoSs">https://www.youtube.com/watch?v=fNk_zzaMoSs</a></p>
+<p><strong>Key Concepts:</strong></p>
+<ul>
+<li>Vectors as arrows in space</li>
+<li>Vectors as lists of numbers</li>
+<li>Why both views matter for RAG</li>
+</ul>
+<p><strong>What to Watch For:</strong></p>
+<ul>
+<li>How vectors represent direction and magnitude</li>
+<li>How to add vectors together</li>
+<li>Why we use vector coordinates</li>
+</ul>
+<hr>
+<h3>Video 2: Linear Combinations, Span, and Basis Vectors</h3>
+<p><strong>Duration:</strong> ~10 minutes<br><strong>Link:</strong> <a href="https://www.youtube.com/watch?v=k7RM-ot2NWY">https://www.youtube.com/watch?v=k7RM-ot2NWY</a></p>
+<p><strong>Key Concepts:</strong></p>
+<ul>
+<li>Linear combinations (scaling and adding vectors)</li>
+<li>Basis vectors (building blocks)</li>
+<li>Span (what vectors can you reach?)</li>
+</ul>
+<p><strong>Connection to RAG:</strong></p>
+<ul>
+<li>Embeddings are high-dimensional vectors (512 or 1536 dimensions)</li>
+<li>Each dimension is a basis vector</li>
+<li>Meaning is captured in these dimensions</li>
+</ul>
+<hr>
+<h3>Video 3: Dot Products and Duality ⭐ MOST IMPORTANT</h3>
+<p><strong>Duration:</strong> ~14 minutes<br><strong>Link:</strong> <a href="https://www.youtube.com/watch?v=LyGKycYT2v0">https://www.youtube.com/watch?v=LyGKycYT2v0</a></p>
+<p><strong>Key Concepts:</strong></p>
+<ul>
+<li>Dot product as projection</li>
+<li>Geometric interpretation</li>
+<li>Why dot products measure similarity</li>
+</ul>
+<p><strong>Connection to RAG:</strong></p>
+<ul>
+<li><strong>This is the foundation of semantic search!</strong></li>
+<li>Cosine similarity uses dot products</li>
+<li>Higher dot product = more similar meanings</li>
+</ul>
+<p><strong>After Watching:</strong> You should understand why <code>[0.8, 0.6] · [0.7, 0.9] = 1.1</code> tells us something about similarity.</p>
+<hr>
+<h2>Part 2: Large Language Models (60 minutes)</h2>
+<p>Understand how LLMs work under the hood so you can build better applications.</p>
+<h3>Video 1: Large Language Models Explained Briefly</h3>
+<p><strong>Duration:</strong> ~10 minutes<br><strong>Link:</strong> <a href="https://www.3blue1brown.com/lessons/mini-llm">https://www.3blue1brown.com/lessons/mini-llm</a></p>
+<p><strong>Key Concepts:</strong></p>
+<ul>
+<li>What are LLMs predicting?</li>
+<li>Token embeddings</li>
+<li>Why context matters</li>
+</ul>
+<hr>
+<h3>Video 2: Transformers - The Architecture Behind LLMs</h3>
+<p><strong>Duration:</strong> ~25 minutes<br><strong>Link:</strong> <a href="https://www.3blue1brown.com/lessons/gpt">https://www.3blue1brown.com/lessons/gpt</a></p>
+<p><strong>Key Concepts:</strong></p>
+<ul>
+<li>Transformer architecture</li>
+<li>Self-attention mechanism</li>
+<li>Why transformers work for language</li>
+</ul>
+<p><strong>Connection to RAG:</strong></p>
+<ul>
+<li>RAG provides external context to transformers</li>
+<li>Embeddings are learned during transformer training</li>
+</ul>
+<hr>
+<h3>Video 3: Attention in Transformers</h3>
+<p><strong>Duration:</strong> ~20 minutes<br><strong>Link:</strong> <a href="https://www.3blue1brown.com/lessons/attention">https://www.3blue1brown.com/lessons/attention</a></p>
+<p><strong>Key Concepts:</strong></p>
+<ul>
+<li>Multi-head attention</li>
+<li>How models &quot;focus&quot; on relevant parts</li>
+<li>Attention weights</li>
+</ul>
+<hr>
+<h3>Video 4: Building a Large Language Model (Optional Deep Dive)</h3>
+<p><strong>Duration:</strong> ~45 minutes<br><strong>Link:</strong> <a href="https://www.youtube.com/watch?v=NKnZYvZA7w4">https://www.youtube.com/watch?v=NKnZYvZA7w4</a></p>
+<p><strong>If you have time:</strong> This is a fantastic deep dive into building an LLM from scratch.</p>
+<hr>
+<h2>Part 3: Vector Databases (30 minutes)</h2>
+<p>Understand why we need specialized databases for vectors and how they work.</p>
+<h3>Pinecone Overview</h3>
+<p><strong>Link:</strong> <a href="https://www.pinecone.io">https://www.pinecone.io</a></p>
+<p><strong>What to Read:</strong></p>
+<ol>
+<li>Go to &quot;Product&quot; → &quot;How it works&quot;</li>
+<li>Read: &quot;What is a vector database?&quot;</li>
+<li>Browse the use cases</li>
+</ol>
+<p><strong>Key Concepts:</strong></p>
+<ul>
+<li>Why traditional databases can&#39;t handle vectors efficiently</li>
+<li>Approximate Nearest Neighbors (ANN) search</li>
+<li>Indexes and namespaces</li>
+</ul>
+<p><strong>Action Item:</strong> Bookmark the Pinecone docs - you&#39;ll use them often!</p>
+<hr>
+<h3>Qdrant Documentation</h3>
+<p><strong>Link:</strong> <a href="https://qdrant.tech">https://qdrant.tech</a></p>
+<p><strong>What to Read:</strong></p>
+<ol>
+<li>&quot;Concepts&quot; section in docs</li>
+<li>Compare to Pinecone (both are excellent)</li>
+</ol>
+<p><strong>Why We Learn Qdrant Too:</strong></p>
+<ul>
+<li>Different trade-offs (open-source vs managed)</li>
+<li>Some companies prefer self-hosted solutions</li>
+<li>Good to know your options</li>
+</ul>
+<hr>
+<h2>Part 4: Observability &amp; Monitoring (15 minutes)</h2>
+<p>Learn why tracking your LLM usage matters.</p>
+<h3>Helicone</h3>
+<p><strong>Link:</strong> <a href="https://www.helicone.ai">https://www.helicone.ai</a></p>
+<p><strong>What to Explore:</strong></p>
+<ol>
+<li>Homepage - understand what problems it solves</li>
+<li>&quot;Features&quot; page - see what you can track</li>
+<li>&quot;Pricing&quot; - note the generous free tier</li>
+</ol>
+<p><strong>Key Questions to Answer:</strong></p>
+<ul>
+<li>Why do you need observability for LLMs?</li>
+<li>What metrics matter? (cost, latency, errors, usage)</li>
+<li>How does it help debug RAG applications?</li>
+</ul>
+<hr>
+<h2>Part 5: Building Effective Agents (45 minutes)</h2>
+<p>Read these articles to understand agent design patterns.</p>
+<h3>Reading 1: Building Effective Agents (Anthropic) ⭐ REQUIRED</h3>
+<p><strong>Link:</strong> <a href="https://www.anthropic.com/engineering/building-effective-agents">https://www.anthropic.com/engineering/building-effective-agents</a></p>
+<p><strong>Time:</strong> ~20 minutes</p>
+<p><strong>Key Concepts:</strong></p>
+<ul>
+<li>Agentic workflows vs workflows</li>
+<li>When to use agents vs simple prompts</li>
+<li>Patterns: Routing, tool use, planning</li>
+<li>Orchestration patterns</li>
+</ul>
+<p><strong>What to Think About:</strong></p>
+<ul>
+<li>When would you use an agent vs a simple chatbot?</li>
+<li>How do agents make decisions?</li>
+<li>What are the risks/challenges?</li>
+</ul>
+<p><strong>Take Notes On:</strong></p>
+<ul>
+<li>Routing patterns (we&#39;ll implement this!)</li>
+<li>Tool calling</li>
+<li>Multi-step reasoning</li>
+</ul>
+<hr>
+<h3>Reading 2: Re-Ranking for Semantic Search (Qdrant) ⭐ REQUIRED</h3>
+<p><strong>Link:</strong> <a href="https://qdrant.tech/documentation/search-precision/reranking-semantic-search/">https://qdrant.tech/documentation/search-precision/reranking-semantic-search/</a></p>
+<p><strong>Time:</strong> ~15 minutes</p>
+<p><strong>Key Concepts:</strong></p>
+<ul>
+<li>Why initial semantic search isn&#39;t perfect</li>
+<li>Two-stage retrieval: Retrieve → Re-rank</li>
+<li>Re-ranking models vs embedding models</li>
+<li>Trade-offs (speed vs quality)</li>
+</ul>
+<p><strong>Connection to Course:</strong></p>
+<ul>
+<li>We&#39;ll implement re-ranking in Module 9</li>
+<li>This dramatically improves RAG quality</li>
+<li>Understanding the &quot;why&quot; helps you decide when to use it</li>
+</ul>
+<p><strong>Questions to Consider:</strong></p>
+<ul>
+<li>When is re-ranking worth the extra latency?</li>
+<li>How does it differ from embedding search?</li>
+</ul>
+<hr>
+<h3>Reading 3: Prompt Engineering for Business (Anthropic)</h3>
+<p><strong>Link:</strong> <a href="https://www.anthropic.com/news/prompt-engineering-for-business-performance">https://www.anthropic.com/news/prompt-engineering-for-business-performance</a></p>
+<p><strong>Time:</strong> ~10 minutes</p>
+<p><strong>Key Concepts:</strong></p>
+<ul>
+<li>Prompt engineering best practices</li>
+<li>System prompts vs user prompts</li>
+<li>Few-shot vs zero-shot learning</li>
+<li>Measuring prompt quality</li>
+</ul>
+<p><strong>Connection to Course:</strong></p>
+<ul>
+<li>You&#39;ll write many prompts for agents</li>
+<li>Good prompts = better performance</li>
+<li>Testing and iteration matter</li>
+</ul>
+<hr>
+<h2>Part 6: Create Accounts (30 minutes)</h2>
+<p>While you&#39;re learning, create these accounts so you&#39;re ready for Week 0.</p>
+<h3>Required Accounts:</h3>
+<ul>
+<li><p><input disabled="" type="checkbox"> <strong>OpenAI</strong> - <a href="https://platform.openai.com">https://platform.openai.com</a></p>
+<ul>
+<li>Add payment method</li>
+<li>Add $5+ credit</li>
+<li>Get API key</li>
+<li>Set spending limits ($10 hard limit recommended)</li>
+</ul>
+</li>
+<li><p><input disabled="" type="checkbox"> <strong>Pinecone</strong> - <a href="https://www.pinecone.io">https://www.pinecone.io</a></p>
+<ul>
+<li>Free tier is fine</li>
+<li>Get API key</li>
+<li>Don&#39;t create index yet (we&#39;ll do this together)</li>
+</ul>
+</li>
+<li><p><input disabled="" type="checkbox"> <strong>Helicone</strong> - <a href="https://www.helicone.ai">https://www.helicone.ai</a></p>
+<ul>
+<li>Free tier</li>
+<li>Get API key</li>
+</ul>
+</li>
+<li><p><input disabled="" type="checkbox"> <strong>Vercel</strong> - <a href="https://vercel.com">https://vercel.com</a></p>
+<ul>
+<li>Sign up with GitHub</li>
+<li>No config needed yet</li>
+</ul>
+</li>
+<li><p><input disabled="" type="checkbox"> <strong>GitHub</strong> - <a href="https://github.com">https://github.com</a></p>
+<ul>
+<li>If you don&#39;t have one already</li>
+</ul>
+</li>
+</ul>
+<p><strong>Save all API keys somewhere safe!</strong> You&#39;ll need them for Week 0 setup.</p>
+<hr>
+<h2>Optional: Explore Qdrant (If You Have Time)</h2>
+<p>If you&#39;re curious about alternative vector databases:</p>
+<p><strong>Link:</strong> <a href="https://qdrant.tech/documentation/">https://qdrant.tech/documentation/</a></p>
+<p><strong>What to Explore:</strong></p>
+<ul>
+<li>Quick start guide</li>
+<li>Compare features to Pinecone</li>
+<li>Read about hybrid search</li>
+<li>Explore the Python/JavaScript clients</li>
+</ul>
+<p><strong>Why This Matters:</strong></p>
+<ul>
+<li>Some companies prefer open-source solutions</li>
+<li>Good to understand the landscape</li>
+<li>Transferable concepts</li>
+</ul>
+<hr>
+<h2>Self-Check: Are You Ready?</h2>
+<p>Before Week 0 starts, you should be able to answer these:</p>
+<h3>Vectors &amp; Math</h3>
+<ul>
+<li><input disabled="" type="checkbox"> What is a vector? (both geometric and numerical views)</li>
+<li><input disabled="" type="checkbox"> Why does the dot product measure similarity?</li>
+<li><input disabled="" type="checkbox"> What is cosine similarity and why do we use it?</li>
+</ul>
+<h3>LLMs</h3>
+<ul>
+<li><input disabled="" type="checkbox"> How do transformers work at a high level?</li>
+<li><input disabled="" type="checkbox"> What is attention and why does it matter?</li>
+<li><input disabled="" type="checkbox"> What are embeddings?</li>
+</ul>
+<h3>RAG Concepts</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Why can&#39;t we just use LLMs directly for everything?</li>
+<li><input disabled="" type="checkbox"> What problem does RAG solve?</li>
+<li><input disabled="" type="checkbox"> What is a vector database and why is it needed?</li>
+</ul>
+<h3>Agents</h3>
+<ul>
+<li><input disabled="" type="checkbox"> What makes something an &quot;agent&quot; vs a simple chatbot?</li>
+<li><input disabled="" type="checkbox"> What is routing?</li>
+<li><input disabled="" type="checkbox"> Why do we need observability?</li>
+</ul>
+<p><strong>If you can&#39;t answer these:</strong> Re-watch the relevant videos or ask in Slack before Week 0!</p>
+<hr>
+<h2>Checklist Before Week 0</h2>
+<p>Complete these before the Week 0 Kickoff Session:</p>
+<h3>Videos Watched</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Vectors (Chapter 1)</li>
+<li><input disabled="" type="checkbox"> Linear combinations, span, basis vectors (Chapter 2)</li>
+<li><input disabled="" type="checkbox"> Dot products and duality (Chapter 9) ⭐ Critical</li>
+<li><input disabled="" type="checkbox"> Mini LLM explanation</li>
+<li><input disabled="" type="checkbox"> GPT/Transformers (Chapter 5)</li>
+<li><input disabled="" type="checkbox"> Attention in transformers (Chapter 6)</li>
+</ul>
+<h3>Readings Completed</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Anthropic: Building Effective Agents</li>
+<li><input disabled="" type="checkbox"> Qdrant: Re-ranking semantic search</li>
+<li><input disabled="" type="checkbox"> Anthropic: Prompt engineering</li>
+</ul>
+<h3>Resources Explored</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Pinecone website and docs</li>
+<li><input disabled="" type="checkbox"> Qdrant overview</li>
+<li><input disabled="" type="checkbox"> Helicone overview</li>
+</ul>
+<h3>Accounts Created</h3>
+<ul>
+<li><input disabled="" type="checkbox"> OpenAI (with API key and $5+ credit)</li>
+<li><input disabled="" type="checkbox"> Pinecone (with API key)</li>
+<li><input disabled="" type="checkbox"> Helicone (with API key)</li>
+<li><input disabled="" type="checkbox"> Vercel</li>
+<li><input disabled="" type="checkbox"> GitHub</li>
+</ul>
+<h3>Ready for Week 0</h3>
+<ul>
+<li><input disabled="" type="checkbox"> All API keys saved securely</li>
+<li><input disabled="" type="checkbox"> Basic understanding of vectors and embeddings</li>
+<li><input disabled="" type="checkbox"> Understanding of why RAG matters</li>
+<li><input disabled="" type="checkbox"> Excited to build! 🚀</li>
+</ul>
+<hr>
+<h2>What Happens Next?</h2>
+<h3>Week 0 Kickoff Session (Live)</h3>
+<p>We&#39;ll meet for the kickoff where we&#39;ll:</p>
+<ol>
+<li>Setup development environment (Node.js, Git, IDE)</li>
+<li>Clone the starter repository</li>
+<li>Configure environment variables</li>
+<li>Test that everything works</li>
+<li>Troubleshoot any issues together</li>
+</ol>
+<p><strong>Before that session:</strong> Complete the <a href="./README.md">Week 0 Setup Guide</a> to install Node.js, Git, etc.</p>
+<hr>
+<h2>Study Tips</h2>
+<p><strong>Spread it out:</strong> Don&#39;t watch all videos in one sitting. Spread them over 3-4 days.</p>
+<p><strong>Take notes:</strong> Jot down questions as you watch. We&#39;ll answer them in class!</p>
+<p><strong>Pause and think:</strong> Especially in the 3Blue1Brown videos, pause when confused and rewind.</p>
+<p><strong>Don&#39;t stress perfection:</strong> You don&#39;t need to master linear algebra. Just get the intuition.</p>
+<p><strong>Ask questions:</strong> Join Slack early and ask if anything is confusing!</p>
+<hr>
+<h2>Additional Resources (Optional)</h2>
+<p>If you want to go deeper:</p>
+<h3>Books</h3>
+<ul>
+<li><strong>&quot;Speech and Language Processing&quot; by Jurafsky &amp; Martin</strong> - Chapter on vector semantics</li>
+<li><strong>&quot;Deep Learning&quot; by Goodfellow et al.</strong> - Chapter on embeddings</li>
+</ul>
+<h3>Courses</h3>
+<ul>
+<li><strong>FastAI Practical Deep Learning</strong> - Free course, great for intuition</li>
+<li><strong>Stanford CS224N</strong> - NLP course (advanced)</li>
+</ul>
+<h3>Interactive</h3>
+<ul>
+<li><strong>TensorFlow Embedding Projector</strong> - Visualize embeddings: projector.tensorflow.org</li>
+</ul>
+<hr>
+<h2>Questions?</h2>
+<p><strong>Before the course starts:</strong> Post in Slack #general channel</p>
+<p><strong>During Week 0:</strong> We&#39;ll have dedicated Q&amp;A time</p>
+<p><strong>Anytime:</strong> Email the instructor (provided separately)</p>
+<hr>
+<p><strong>Ready to learn RAG? See you in Week 0! 🎓</strong></p>
+
+</body>
+</html>

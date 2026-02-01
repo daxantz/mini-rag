@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LinkedIn Agent</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      color: #333;
+    }
+
+    h1 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 32px;
+      font-weight: bold;
+    }
+
+    h2 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    h3 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    h4 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    h5 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    h6 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    p {
+      margin: 12px 0;
+      line-height: 1.6;
+    }
+
+    a {
+      color: #0066cc;
+      text-decoration: underline;
+    }
+
+    strong {
+      font-weight: bold;
+    }
+
+    em {
+      font-style: italic;
+    }
+
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.9em;
+    }
+
+    pre {
+      background-color: #f4f4f4;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      margin: 20px 0;
+    }
+
+    pre code {
+      background-color: transparent;
+      padding: 0;
+    }
+
+    blockquote {
+      border-left: 4px solid #ddd;
+      margin: 20px 0;
+      padding: 10px 20px;
+      background-color: #f9f9f9;
+    }
+
+    hr {
+      border: none;
+      border-top: 2px solid #eee;
+      margin: 30px 0;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 20px 0;
+    }
+
+    iframe {
+      max-width: 100%;
+      margin: 20px 0;
+    }
+
+    details {
+      margin: 20px 0;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border-radius: 5px;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    ol, ul {
+      margin: 10px 0;
+      padding-left: 30px;
+    }
+
+    li {
+      margin: 5px 0;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 20px 0;
+      border: 1px solid #ddd;
+    }
+
+    th, td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f4f4f4;
+      font-weight: bold;
+    }
+
+    input[type="checkbox"] {
+      margin-right: 5px;
+    }
+  </style>
+</head>
+<body>
+<h1>LinkedIn Agent</h1>
+<p>Now that we have your fine-tuned model from module 5, we&#39;ll implement an agent that uses it to respond in your personal LinkedIn style with streaming responses.</p>
+<hr>
+<h2>Video Walkthrough</h2>
+<p>Watch this guide to implementing the LinkedIn agent:</p>
+<iframe src="https://share.descript.com/embed/oSYwAxsn4AO" width="640" height="360" frameborder="0" allowfullscreen></iframe>
+
+<hr>
+<h2>What You&#39;ll Build</h2>
+<p>An agent that:</p>
+<ul>
+<li>Uses your fine-tuned model</li>
+<li>Streams responses for a better user experience</li>
+<li>Responds in your personal conversational style</li>
+</ul>
+<h2>Implementation Steps</h2>
+<p>The agent implementation is in <code>app/agents/linkedin.ts</code>.</p>
+<h3>1. Configure Your Fine-Tuned Model</h3>
+<p>Add your fine-tuned model ID to your <code>.env.local</code>:</p>
+<pre><code class="language-bash">OPENAI_FINETUNED_MODEL=ft:gpt-4o-mini-2024-07-18:your-org:your-model:id
+</code></pre>
+<p>You can find this ID in your OpenAI dashboard under Fine-tuning, or from the API response when you created the fine-tune.</p>
+<h3>2. Implement the Agent</h3>
+<p>Your agent needs to:</p>
+<ol>
+<li><strong>Get the model ID</strong> from environment variables (<code>process.env.OPENAI_FINETUNED_MODEL</code>)</li>
+<li><strong>Build a system prompt</strong> that defines the agent&#39;s role as a LinkedIn copywriter</li>
+<li><strong>Use <code>prompt</code></strong> to provide the user&#39;s original request and refined query as context</li>
+<li><strong>Use <code>streamText()</code></strong> from the Vercel AI SDK to stream the response</li>
+</ol>
+<p>The TODOs in <code>app/agents/linkedin.ts</code> guide you through each step.</p>
+<h2>Key Concepts</h2>
+<h3>Streaming Responses with Prompt</h3>
+<p>Using <code>streamText()</code> provides a better user experience by showing the response as it&#39;s generated. Here&#39;s the solution:</p>
+<pre><code class="language-typescript">return streamText({
+	model: openai(process.env.OPENAI_FINETUNED_MODEL!),
+	system: &#39;You are a professional linkedin copywriter to create high engagement linkedin posts&#39;,
+	prompt: `
+    Original User Request: ${_request.originalQuery}
+    Refined Query: ${_request.query}
+  `,
+});
+</code></pre>
+<p>Key points:</p>
+<ul>
+<li>Return the <code>streamText()</code> result directly (no need to call additional methods or await)</li>
+<li>Use <strong><code>prompt</code></strong> (not <code>messages</code>) to provide context - this is simpler for single-turn agent responses</li>
+<li>The <code>prompt</code> includes both the original user request and the refined query from the selector agent</li>
+<li>The <code>system</code> parameter sets the agent&#39;s role and behavior</li>
+<li>The fine-tuned model is passed using <code>openai(process.env.OPENAI_FINETUNED_MODEL!)</code></li>
+</ul>
+<h2>Resources</h2>
+<ul>
+<li><a href="https://sdk.vercel.ai/docs/reference/ai-sdk-core/stream-text">Vercel AI SDK - streamText</a></li>
+<li><a href="https://platform.openai.com/docs/guides/fine-tuning">OpenAI Fine-tuning Guide</a></li>
+<li><a href="https://platform.openai.com/docs/guides/fine-tuning/use-a-fine-tuned-model">Using Fine-tuned Models</a></li>
+</ul>
+<h2>Testing</h2>
+<p>Once implemented, the selector agent will route requests to generate LinkedIn posts to this LinkedIn agent automatically.</p>
+
+</body>
+</html>

@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Understanding the Chat Interface</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      color: #333;
+    }
+
+    h1 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 32px;
+      font-weight: bold;
+    }
+
+    h2 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    h3 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    h4 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    h5 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    h6 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    p {
+      margin: 12px 0;
+      line-height: 1.6;
+    }
+
+    a {
+      color: #0066cc;
+      text-decoration: underline;
+    }
+
+    strong {
+      font-weight: bold;
+    }
+
+    em {
+      font-style: italic;
+    }
+
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.9em;
+    }
+
+    pre {
+      background-color: #f4f4f4;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      margin: 20px 0;
+    }
+
+    pre code {
+      background-color: transparent;
+      padding: 0;
+    }
+
+    blockquote {
+      border-left: 4px solid #ddd;
+      margin: 20px 0;
+      padding: 10px 20px;
+      background-color: #f9f9f9;
+    }
+
+    hr {
+      border: none;
+      border-top: 2px solid #eee;
+      margin: 30px 0;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 20px 0;
+    }
+
+    iframe {
+      max-width: 100%;
+      margin: 20px 0;
+    }
+
+    details {
+      margin: 20px 0;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border-radius: 5px;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    ol, ul {
+      margin: 10px 0;
+      padding-left: 30px;
+    }
+
+    li {
+      margin: 5px 0;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 20px 0;
+      border: 1px solid #ddd;
+    }
+
+    th, td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f4f4f4;
+      font-weight: bold;
+    }
+
+    input[type="checkbox"] {
+      margin-right: 5px;
+    }
+  </style>
+</head>
+<body>
+<h1>Understanding the Chat Interface</h1>
+<p>You&#39;ve built the backend - agents, routing, retrieval. Now let&#39;s walk through the frontend code to see how it all comes together. The interface is intentionally bare-bones, leaving plenty of room for you to improve it.</p>
+<hr>
+<h2>Video Walkthrough</h2>
+<p>Watch this walkthrough of the chat interface:</p>
+<iframe src="https://share.descript.com/embed/eGQzTq8Dl4l" width="640" height="360" frameborder="0" allowfullscreen></iframe>
+
+<hr>
+<h2>What You&#39;ll Learn</h2>
+<p>By the end of this module, you&#39;ll understand:</p>
+<ul>
+<li>How the custom streaming implementation works</li>
+<li>The two-step flow: agent selection → chat response</li>
+<li>How messages are managed with React state</li>
+<li>Where the code can be improved (lots of opportunities!)</li>
+</ul>
+<hr>
+<h2>The Complete Flow</h2>
+<pre><code>1. User types question
+        ↓
+2. handleChatSubmit intercepts
+        ↓
+3. Add user message to UI
+        ↓
+4. Call /api/select-agent with conversation history
+        ↓
+5. Get { agent, query } back
+        ↓
+6. Call /api/chat with agent + query
+        ↓
+7. Stream response chunks
+        ↓
+8. Update assistant message as chunks arrive
+        ↓
+9. Display complete response
+</code></pre>
+<hr>
+<h2>Documentation Resources</h2>
+<p><strong>Fetch API &amp; Streams:</strong></p>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API">Fetch API - MDN</a> - Basic fetch usage</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Streams_API">Streams API - MDN</a> - Understanding ReadableStream</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Streams_API/Using_readable_streams">Using Readable Streams</a> - Reading stream data</li>
+</ul>
+<p><strong>React Hooks:</strong></p>
+<ul>
+<li><a href="https://react.dev/reference/react/useState">useState Hook</a> - State management</li>
+<li><a href="https://react.dev/reference/react/useEffect">useEffect Hook</a> - Side effects (auto-scroll)</li>
+<li><a href="https://react.dev/reference/react/useRef">useRef Hook</a> - DOM references</li>
+</ul>
+<p><strong>Alternative Approaches:</strong></p>
+<ul>
+<li><a href="https://sdk.vercel.ai/docs/ai-sdk-ui/chatbot">Vercel AI SDK - useChat</a> - Higher-level chat hook</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events">Server-Sent Events</a> - SSE alternative to streams</li>
+</ul>
+<hr>
+<h2>State Management</h2>
+<p>Located at: <code>app/page.tsx</code> (lines 7-21)</p>
+<pre><code class="language-typescript">// Chat state
+const [input, setInput] = useState(&#39;&#39;);
+const [messages, setMessages] = useState&lt;
+	Array&lt;{
+		id: string;
+		role: &#39;user&#39; | &#39;assistant&#39;;
+		content: string;
+	}&gt;
+&gt;([]);
+const [isStreaming, setIsStreaming] = useState(false);
+const messagesEndRef = useRef&lt;HTMLDivElement&gt;(null);
+
+// Upload state
+const [uploadContent, setUploadContent] = useState(&#39;&#39;);
+const [uploadType, setUploadType] = useState&lt;&#39;urls&#39; | &#39;text&#39;&gt;(&#39;urls&#39;);
+const [isUploading, setIsUploading] = useState(false);
+const [uploadStatus, setUploadStatus] = useState(&#39;&#39;);
+</code></pre>
+<p><strong>Why this structure?</strong></p>
+<p><strong>Messages array:</strong></p>
+<pre><code class="language-typescript">{
+  id: string,        // Unique ID for React keys
+  role: &#39;user&#39; | &#39;assistant&#39;,
+  content: string    // Message text
+}
+</code></pre>
+<p>Simple and straightforward. No complex message parts, no metadata. Just the essentials.</p>
+<p><strong>Streaming flag:</strong></p>
+<pre><code class="language-typescript">const [isStreaming, setIsStreaming] = useState(false);
+</code></pre>
+<p>Prevents multiple simultaneous requests and shows loading state.</p>
+<hr>
+<h2>The Chat Submit Handler</h2>
+<p>Located at: <code>app/page.tsx</code> (lines 84-175)</p>
+<h3>Step 1: Prevent Default &amp; Validate</h3>
+<pre><code class="language-typescript">const handleChatSubmit = async (e: React.FormEvent&lt;HTMLFormElement&gt;) =&gt; {
+  e.preventDefault();
+  if (!input.trim() || isStreaming) return;
+</code></pre>
+<p><strong>Why these checks?</strong></p>
+<ul>
+<li><code>e.preventDefault()</code>: Stop form from refreshing page</li>
+<li><code>!input.trim()</code>: Reject empty or whitespace-only input</li>
+<li><code>isStreaming</code>: Prevent sending while already processing</li>
+</ul>
+<h3>Step 2: Add User Message to UI</h3>
+<pre><code class="language-typescript">const userInput = input;
+setInput(&#39;&#39;); // Clear input immediately for better UX
+
+const userMessage = {
+	id: uuidv4(),
+	role: &#39;user&#39; as const,
+	content: userInput,
+};
+
+setMessages((prev) =&gt; [...prev, userMessage]);
+</code></pre>
+<p><strong>Why clear input first?</strong></p>
+<ul>
+<li>Makes UI feel more responsive</li>
+<li>User knows message was received</li>
+<li>Can start typing next message</li>
+</ul>
+<p><strong>Why <code>role: &#39;user&#39; as const</code>?</strong><br>TypeScript needs to know it&#39;s the literal type <code>&#39;user&#39;</code>, not just <code>string</code>.</p>
+<h3>Step 3: Select Agent</h3>
+<pre><code class="language-typescript">const currentMessages = [
+	...messages,
+	{ role: &#39;user&#39; as const, content: userInput },
+];
+
+setIsStreaming(true);
+
+const agentResponse = await fetch(&#39;/api/select-agent&#39;, {
+	method: &#39;POST&#39;,
+	headers: { &#39;Content-Type&#39;: &#39;application/json&#39; },
+	body: JSON.stringify({ messages: currentMessages }),
+});
+
+const { agent, query } = await agentResponse.json();
+</code></pre>
+<p><strong>Key insight:</strong></p>
+<pre><code class="language-typescript">const currentMessages = [
+	...messages, // Previous conversation
+	{ role: &#39;user&#39;, content: userInput }, // NEW message
+];
+</code></pre>
+<p>We build a messages array that includes the current input because:</p>
+<ul>
+<li>Selector needs full context to route properly</li>
+<li>Follow-up questions need conversation history</li>
+<li>Query refinement benefits from context</li>
+</ul>
+<h3>Step 4: Stream the Response</h3>
+<pre><code class="language-typescript">const response = await fetch(&#39;/api/chat&#39;, {
+	method: &#39;POST&#39;,
+	headers: { &#39;Content-Type&#39;: &#39;application/json&#39; },
+	body: JSON.stringify({
+		messages: currentMessages,
+		agent,
+		query,
+	}),
+});
+
+if (!response.ok) {
+	console.error(&#39;Error from chat API:&#39;, await response.text());
+	return;
+}
+</code></pre>
+<p><strong>Why pass <code>currentMessages</code> again?</strong><br>The chat route needs conversation history to maintain context in the response.</p>
+<h3>Step 5: Create Empty Assistant Message</h3>
+<pre><code class="language-typescript">const assistantMessageId = uuidv4();
+setMessages((prev) =&gt; [
+	...prev,
+	{
+		id: assistantMessageId,
+		role: &#39;assistant&#39;,
+		content: &#39;&#39;, // Start empty!
+	},
+]);
+</code></pre>
+<p><strong>Why create an empty message?</strong></p>
+<ul>
+<li>We&#39;ll fill it in as chunks arrive</li>
+<li>User sees message appear immediately</li>
+<li>Creates smooth streaming effect</li>
+</ul>
+<h3>Step 6: Read the Stream</h3>
+<pre><code class="language-typescript">const reader = response.body?.getReader();
+const decoder = new TextDecoder();
+let assistantResponse = &#39;&#39;;
+
+if (reader) {
+	while (true) {
+		const { done, value } = await reader.read();
+		if (done) break;
+
+		const chunk = decoder.decode(value);
+		assistantResponse += chunk;
+
+		// Update the message with accumulated response
+		setMessages((prev) =&gt;
+			prev.map((msg) =&gt;
+				msg.id === assistantMessageId
+					? { ...msg, content: assistantResponse }
+					: msg,
+			),
+		);
+	}
+}
+</code></pre>
+<p><strong>Breaking it down:</strong></p>
+<p><strong>Get a reader:</strong></p>
+<pre><code class="language-typescript">const reader = response.body?.getReader();
+</code></pre>
+<p><code>getReader()</code> gives us control over the stream. We can read it chunk by chunk.</p>
+<p><strong>Decode chunks:</strong></p>
+<pre><code class="language-typescript">const decoder = new TextDecoder();
+const chunk = decoder.decode(value);
+</code></pre>
+<p>Chunks arrive as <code>Uint8Array</code>. TextDecoder converts them to strings.</p>
+<p><strong>Accumulate response:</strong></p>
+<pre><code class="language-typescript">assistantResponse += chunk;
+</code></pre>
+<p>Build up the full response as chunks arrive.</p>
+<p><strong>Update the message:</strong></p>
+<pre><code class="language-typescript">setMessages((prev) =&gt;
+	prev.map((msg) =&gt;
+		msg.id === assistantMessageId
+			? { ...msg, content: assistantResponse }
+			: msg,
+	),
+);
+</code></pre>
+<p>Find the assistant message by ID and update its content. React re-renders, user sees new text.</p>
+<p><strong>Why this works:</strong></p>
+<ul>
+<li>Each chunk updates the same message</li>
+<li>User sees text appear progressively</li>
+<li>No flashing or jumping</li>
+</ul>
+<hr>
+<h2>Auto-Scroll to Bottom</h2>
+<p>Located at: <code>app/page.tsx</code> (lines 80-82)</p>
+<pre><code class="language-typescript">useEffect(() =&gt; {
+	messagesEndRef.current?.scrollIntoView({ behavior: &#39;smooth&#39; });
+}, [messages]);
+</code></pre>
+<p><strong>How it works:</strong></p>
+<p><strong>1. Ref at the end of messages:</strong></p>
+<pre><code class="language-typescript">&lt;div ref={messagesEndRef} /&gt; // Placed after all messages
+</code></pre>
+<p><strong>2. Effect runs when messages change:</strong></p>
+<pre><code class="language-typescript">useEffect(() =&gt; {...}, [messages]);
+</code></pre>
+<p><strong>3. Scroll to that ref:</strong></p>
+<pre><code class="language-typescript">messagesEndRef.current?.scrollIntoView({ behavior: &#39;smooth&#39; });
+</code></pre>
+<p><strong>Result:</strong> Chat always shows the latest message, with smooth scrolling animation.</p>
+<hr>
+<h2>Rendering Messages</h2>
+<p>Located at: <code>app/page.tsx</code> (lines 236-264)</p>
+<pre><code class="language-typescript">{
+	messages.map((message) =&gt; (
+		&lt;div
+			key={message.id}
+			className={`p-3 rounded ${
+				message.role === &#39;user&#39;
+					? &#39;bg-blue-100 ml-8&#39;
+					: &#39;bg-gray-100 mr-8&#39;
+			}`}
+		&gt;
+			&lt;p className=&#39;font-semibold mb-1&#39;&gt;
+				{message.role === &#39;user&#39; ? &#39;👤 You&#39; : &#39;🤖 AI Assistant&#39;}
+			&lt;/p&gt;
+			&lt;div className=&#39;whitespace-pre-wrap&#39;&gt;{message.content}&lt;/div&gt;
+		&lt;/div&gt;
+	));
+}
+</code></pre>
+<p><strong>Simple and effective:</strong></p>
+<p><strong>Visual differentiation:</strong></p>
+<ul>
+<li>User messages: blue background, left margin (pushes right)</li>
+<li>Assistant messages: gray background, right margin (pushes left)</li>
+</ul>
+<p><strong>Content rendering:</strong></p>
+<pre><code class="language-typescript">&lt;div className=&#39;whitespace-pre-wrap&#39;&gt;{message.content}&lt;/div&gt;
+</code></pre>
+<p><code>whitespace-pre-wrap</code> preserves line breaks and whitespace while still wrapping long lines.</p>
+<h3>Loading Indicator</h3>
+<pre><code class="language-typescript">{
+	isStreaming &amp;&amp; !messages[messages.length - 1]?.content &amp;&amp; (
+		&lt;div className=&#39;p-3 rounded bg-gray-100 mr-8&#39;&gt;
+			&lt;p className=&#39;text-gray-500&#39;&gt;🤔 Thinking...&lt;/p&gt;
+		&lt;/div&gt;
+	);
+}
+</code></pre>
+<p><strong>Shows &quot;Thinking...&quot; when:</strong></p>
+<ul>
+<li><code>isStreaming</code> is true (request in progress)</li>
+<li>Last message has no content yet (assistant message just created)</li>
+</ul>
+<p><strong>Hides when:</strong></p>
+<ul>
+<li>First chunk arrives (content no longer empty)</li>
+</ul>
+<hr>
+<h2>The Input Form</h2>
+<p>Located at: <code>app/page.tsx</code> (lines 273-288)</p>
+<pre><code class="language-typescript">&lt;form onSubmit={handleChatSubmit} className=&#39;flex gap-2&#39;&gt;
+	&lt;input
+		value={input}
+		onChange={(e) =&gt; setInput(e.target.value)}
+		placeholder=&#39;Ask a question about your documents...&#39;
+		className=&#39;flex-1 p-2 border rounded&#39;
+		disabled={isStreaming}
+	/&gt;
+	&lt;button
+		type=&#39;submit&#39;
+		disabled={isStreaming || !input.trim()}
+		className=&#39;px-6 py-2 bg-green-600 text-black rounded disabled:bg-gray-400&#39;
+	&gt;
+		{isStreaming ? &#39;Sending...&#39; : &#39;Send&#39;}
+	&lt;/button&gt;
+&lt;/form&gt;
+</code></pre>
+<p><strong>Key features:</strong></p>
+<p><strong>Controlled input:</strong></p>
+<pre><code class="language-typescript">value={input}
+onChange={(e) =&gt; setInput(e.target.value)}
+</code></pre>
+<p>React manages the input value. This enables clearing it programmatically.</p>
+<p><strong>Disabled during streaming:</strong></p>
+<pre><code class="language-typescript">disabled = { isStreaming };
+</code></pre>
+<p>Prevents typing while processing. User sees button change too.</p>
+<p><strong>Dynamic button text:</strong></p>
+<pre><code class="language-typescript">{
+	isStreaming ? &#39;Sending...&#39; : &#39;Send&#39;;
+}
+</code></pre>
+<p>Clear visual feedback about current state.</p>
+<hr>
+<h2>What&#39;s Missing (Improvement Opportunities)</h2>
+<p>This is a <strong>bare-bones</strong> interface. Here are obvious improvements you could make:</p>
+<h3>1. Error Handling</h3>
+<pre><code class="language-typescript">// Currently just console.error
+catch (error) {
+  console.error(&#39;Error in chat:&#39;, error);
+}
+
+// Could show to user:
+setMessages(prev =&gt; [...prev, {
+  id: uuidv4(),
+  role: &#39;assistant&#39;,
+  content: &#39;❌ Sorry, something went wrong. Please try again.&#39;
+}]);
+</code></pre>
+<h3>2. Conversation Persistence</h3>
+<p>Currently messages disappear on refresh. Could add:</p>
+<ul>
+<li>LocalStorage persistence</li>
+<li>Database storage</li>
+<li>URL-based conversation IDs</li>
+</ul>
+<h3>3. Message Timestamps</h3>
+<pre><code class="language-typescript">&lt;p className=&#39;text-xs text-gray-500&#39;&gt;
+	{new Date(message.timestamp).toLocaleTimeString()}
+&lt;/p&gt;
+</code></pre>
+<h3>4. Copy Button for Responses</h3>
+<pre><code class="language-typescript">&lt;button onClick={() =&gt; navigator.clipboard.writeText(message.content)}&gt;
+	📋 Copy
+&lt;/button&gt;
+</code></pre>
+<h3>5. Markdown Rendering</h3>
+<p>AI responses often include code blocks and formatting:</p>
+<pre><code class="language-typescript">import ReactMarkdown from &#39;react-markdown&#39;;
+
+&lt;ReactMarkdown&gt;{message.content}&lt;/ReactMarkdown&gt;;
+</code></pre>
+<h3>6. Agent Indicator</h3>
+<p>Show which agent handled the response:</p>
+<pre><code class="language-typescript">&lt;span className=&#39;text-xs&#39;&gt;
+	{message.agent === &#39;rag&#39; ? &#39;📚 RAG Agent&#39; : &#39;💼 LinkedIn Agent&#39;}
+&lt;/span&gt;
+</code></pre>
+<h3>7. <strong>Source References (Your Challenge!)</strong></h3>
+<p>For RAG responses, show which documents were used. More on this below...</p>
+<hr>
+<h2>Your Challenge: Add Source References</h2>
+<p>When the RAG agent responds, it retrieves documents from Pinecone. Currently, the user has no idea which documents were used. Your task is to display source references.</p>
+<h3>What You Need to Do</h3>
+<p><strong>1. Modify the RAG Agent to Return Sources</strong></p>
+<p>Update <code>app/agents/rag.ts</code> to include source information:</p>
+<pre><code class="language-typescript">// After querying Pinecone:
+const sources = queryResponse.matches.map((match) =&gt; ({
+	title: match.metadata?.title || &#39;Untitled&#39;,
+	url: match.metadata?.url || &#39;&#39;,
+	score: match.score || 0,
+}));
+</code></pre>
+<p><strong>2. Pass Sources Through the Chat Route</strong></p>
+<p>The tricky part: <code>streamText()</code> returns a text stream. How do you include metadata?</p>
+<p><strong>Hint:</strong> You can:</p>
+<ul>
+<li>Return sources in a custom header</li>
+<li>Use a different streaming format that includes metadata</li>
+<li>Store sources in a separate state/database and reference by message ID</li>
+<li>Modify the stream to include metadata at the end</li>
+</ul>
+<p><strong>3. Display Sources in the UI</strong></p>
+<p>Add a section below RAG responses:</p>
+<pre><code class="language-typescript">{
+	message.role === &#39;assistant&#39; &amp;&amp; message.sources &amp;&amp; (
+		&lt;div className=&#39;mt-3 pt-3 border-t&#39;&gt;
+			&lt;p className=&#39;text-xs font-semibold mb-2&#39;&gt;📚 Sources:&lt;/p&gt;
+			{message.sources.map((source, idx) =&gt; (
+				&lt;a
+					key={idx}
+					href={source.url}
+					className=&#39;text-xs text-blue-600 block hover:underline&#39;
+					target=&#39;_blank&#39;
+					rel=&#39;noopener noreferrer&#39;
+				&gt;
+					{source.title} (Score: {source.score.toFixed(2)})
+				&lt;/a&gt;
+			))}
+		&lt;/div&gt;
+	);
+}
+</code></pre>
+<h3>Hints</h3>
+<p><strong>Approach 1: Custom Headers</strong></p>
+<pre><code class="language-typescript">// In chat route:
+const headers = new Headers();
+headers.set(&#39;X-Sources&#39;, JSON.stringify(sources));
+return new Response(stream, { headers });
+
+// In frontend:
+const sourcesHeader = response.headers.get(&#39;X-Sources&#39;);
+const sources = sourcesHeader ? JSON.parse(sourcesHeader) : [];
+</code></pre>
+<p><strong>Approach 2: Append to Stream</strong></p>
+<pre><code class="language-typescript">// After streaming complete, append metadata:
+yield`\n\n__SOURCES__${JSON.stringify(sources)}`;
+
+// In frontend, parse it out:
+if (chunk.includes(&#39;__SOURCES__&#39;)) {
+	const [content, sourcesJson] = chunk.split(&#39;__SOURCES__&#39;);
+	// Parse and store sources separately
+}
+</code></pre>
+<p><strong>Approach 3: Separate API Call</strong></p>
+<pre><code class="language-typescript">// Store sources in memory with message ID
+// Make a separate /api/sources/:messageId call
+// Simpler but requires extra request
+</code></pre>
+<h3>Success Criteria</h3>
+<p>When done, users should see:</p>
+<ol>
+<li>Regular streaming response as before</li>
+<li>Below the response, a &quot;Sources&quot; section</li>
+<li>Clickable links to the documents used</li>
+<li>Relevance scores for each source</li>
+<li>Only shown for RAG responses (not LinkedIn)</li>
+</ol>
+<p><strong>Time estimate:</strong> 1-2 hours</p>
+<hr>
+<h2>Testing Your Interface</h2>
+<h3>Test 1: Basic Chat Flow</h3>
+<ol>
+<li>Upload a document</li>
+<li>Ask a question</li>
+<li>See message appear immediately</li>
+<li>See &quot;Thinking...&quot; indicator</li>
+<li>See response stream in word by word</li>
+<li>Verify auto-scroll to bottom</li>
+</ol>
+<h3>Test 2: Agent Routing</h3>
+<p>Ask different types of questions:</p>
+<ul>
+<li>&quot;Explain React hooks&quot; → RAG agent</li>
+<li>&quot;Help me write a LinkedIn post&quot; → LinkedIn agent</li>
+</ul>
+<p>Check console logs to see which agent was selected.</p>
+<h3>Test 3: Conversation Context</h3>
+<pre><code>You: &quot;What are React hooks?&quot;
+AI: [explains hooks]
+You: &quot;Give me an example&quot;  ← Should understand context
+AI: [provides hook example]
+</code></pre>
+<h3>Test 4: Edge Cases</h3>
+<ul>
+<li>Submit empty message (should be blocked)</li>
+<li>Rapid clicking submit (should be blocked during streaming)</li>
+<li>Long responses (should handle scrolling)</li>
+<li>Error responses (check console logs)</li>
+</ul>
+<h3>Test 5: Source References (After Challenge)</h3>
+<ol>
+<li>Ask a RAG question</li>
+<li>Verify sources appear below response</li>
+<li>Click source links (should open in new tab)</li>
+<li>Check relevance scores make sense</li>
+</ol>
+<hr>
+<h2>What You&#39;ve Learned</h2>
+<p>Now you understand:</p>
+<ul>
+<li>✅ Custom streaming implementation with fetch + ReadableStream</li>
+<li>✅ Two-step agent selection + response flow</li>
+<li>✅ React state management for chat messages</li>
+<li>✅ Auto-scrolling with useRef and useEffect</li>
+<li>✅ Where the interface can be improved</li>
+</ul>
+<hr>
+<h2>What&#39;s Next</h2>
+<p><strong>Congratulations!</strong> You&#39;ve built a complete RAG system:</p>
+<ul>
+<li>✅ Document upload and vectorization</li>
+<li>✅ Agent architecture with routing</li>
+<li>✅ Fine-tuned LinkedIn agent</li>
+<li>✅ RAG agent with retrieval and re-ranking</li>
+<li>✅ Streaming chat interface</li>
+</ul>
+<p><strong>Optional next modules:</strong></p>
+<ul>
+<li><strong>Module 12:</strong> Observability with Helicone</li>
+<li><strong>Module 13:</strong> Testing your agents</li>
+</ul>
+<hr>
+
+</body>
+</html>

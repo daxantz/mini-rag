@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
 
 		// TODO: Step 1 - Call OpenAI with structured output
 		const response = await openaiClient.responses.parse({
-			model: 'gpt-4o-mini',
+			model: 'gpt-4o',
 			input: [
 				{
 					role: 'system',
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
 					Pick the best agent based on the user query
 					The agents are: ${JSON.stringify(agentDescriptions)}
 
-					RAG Agent: For generating a linkedin post based on a user query.
+					RAG Agent: For generating a cringy linkedin post based on a user query with a bunch of emojis and hashtags.
 					LinkedIn Agent: For polishing a written post in a certain voice and tone for LinkedIn. The user will provide a topic and you will write a post about it.
 
 					If the user query is not clear then ask for clarification and do NOT pick an agent
@@ -73,11 +73,6 @@ export async function POST(req: NextRequest) {
 		// TODO: Step 2 - Extract the parsed output
 		const { agent, query, confidence, clarification } =
 			response.output_parsed ?? {};
-
-		console.log(
-			'response',
-			JSON.stringify(response.output_parsed, null, 2),
-		);
 
 		return NextResponse.json({
 			agent,

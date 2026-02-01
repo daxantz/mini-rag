@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prompting Fundamentals for Agents</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      color: #333;
+    }
+
+    h1 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 32px;
+      font-weight: bold;
+    }
+
+    h2 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    h3 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    h4 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    h5 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    h6 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    p {
+      margin: 12px 0;
+      line-height: 1.6;
+    }
+
+    a {
+      color: #0066cc;
+      text-decoration: underline;
+    }
+
+    strong {
+      font-weight: bold;
+    }
+
+    em {
+      font-style: italic;
+    }
+
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.9em;
+    }
+
+    pre {
+      background-color: #f4f4f4;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      margin: 20px 0;
+    }
+
+    pre code {
+      background-color: transparent;
+      padding: 0;
+    }
+
+    blockquote {
+      border-left: 4px solid #ddd;
+      margin: 20px 0;
+      padding: 10px 20px;
+      background-color: #f9f9f9;
+    }
+
+    hr {
+      border: none;
+      border-top: 2px solid #eee;
+      margin: 30px 0;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 20px 0;
+    }
+
+    iframe {
+      max-width: 100%;
+      margin: 20px 0;
+    }
+
+    details {
+      margin: 20px 0;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border-radius: 5px;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    ol, ul {
+      margin: 10px 0;
+      padding-left: 30px;
+    }
+
+    li {
+      margin: 5px 0;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 20px 0;
+      border: 1px solid #ddd;
+    }
+
+    th, td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f4f4f4;
+      font-weight: bold;
+    }
+
+    input[type="checkbox"] {
+      margin-right: 5px;
+    }
+  </style>
+</head>
+<body>
+<h1>Prompting Fundamentals for Agents</h1>
+<p>Before you build agents, you need to understand how they think. And that comes down to <strong>prompting</strong> — the art and science of communicating with language models.</p>
+<p>This module will prepare you for building the agent system in the next section.</p>
+<hr>
+<h2>What You&#39;ll Learn</h2>
+<ul>
+<li>The prompt stack: system, user, and assistant message roles</li>
+<li>How to write effective system prompts for agents</li>
+<li>System prompt caching and why it matters</li>
+<li>Temperature control and when to use each range</li>
+<li>Model selection for different agent tasks</li>
+<li>Dynamic variables and token budgets</li>
+<li>Few-shot vs zero-shot prompting strategies</li>
+</ul>
+<hr>
+<h2>The Prompt Stack</h2>
+<p>Every OpenAI API request has three main layers:</p>
+<pre><code class="language-typescript">await openai.chat.completions.create({
+	model: &#39;gpt-4o-mini&#39;,
+	messages: [
+		{
+			role: &#39;system&#39;, // ← Defines the model&#39;s role, tone, and constraints
+			content: &#39;You are a database search agent that returns structured JSON.&#39;,
+		},
+		{
+			role: &#39;user&#39;, // ← The human&#39;s request
+			content: &#39;Find songs with over 1M plays in Brazil.&#39;,
+		},
+		{
+			role: &#39;assistant&#39;, // ← Previous responses (optional, for context)
+			content: &#39;Here are the top songs...&#39;,
+		},
+	],
+});
+</code></pre>
+<h3>Message Roles Explained</h3>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Purpose</th>
+<th>When to Use</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>system</code></td>
+<td>Sets behavior, constraints, output format</td>
+<td>First message, defines the agent&#39;s job</td>
+</tr>
+<tr>
+<td><code>user</code></td>
+<td>User&#39;s input or query</td>
+<td>Every request from the user</td>
+</tr>
+<tr>
+<td><code>assistant</code></td>
+<td>AI&#39;s previous responses</td>
+<td>Multi-turn conversations for context</td>
+</tr>
+</tbody></table>
+<p><strong>Key principle:</strong> Keep the system prompt focused and specific. Each agent should do one job well.</p>
+<hr>
+<h2>System Prompts: Instructing Your Agent</h2>
+<p>A <strong>system prompt</strong> is like a job description for your AI. It tells the model:</p>
+<ul>
+<li>What role it&#39;s playing</li>
+<li>What it should do</li>
+<li>What constraints to follow</li>
+<li>What format to respond in</li>
+</ul>
+<h3>Example: Agent Router System Prompt</h3>
+<p>Here&#39;s what you&#39;ll use in the selector agent:</p>
+<pre><code class="language-typescript">const systemPrompt = `You are an agent router that analyzes conversations and selects the best agent to handle the user&#39;s request.
+
+Available agents:
+- &quot;linkedin&quot;: Handles questions about professional networking, LinkedIn content, career advice
+- &quot;rag&quot;: Handles questions about technical documentation, code examples, API references
+
+Your task:
+1. Analyze the last few messages for context
+2. Identify the user&#39;s intent
+3. Select the most appropriate agent
+4. Refine the query to be clear and focused
+
+Respond in this format:
+{
+  &quot;agent&quot;: &quot;rag&quot;,
+  &quot;query&quot;: &quot;How do I use React hooks?&quot;
+}`;
+</code></pre>
+<h3>What Makes This Prompt Effective?</h3>
+<p>✅ <strong>Clear role definition</strong>: &quot;You are an agent router&quot;<br>✅ <strong>Explicit options</strong>: Lists available agents with descriptions<br>✅ <strong>Step-by-step instructions</strong>: Numbered task breakdown<br>✅ <strong>Defined output format</strong>: Shows exact JSON structure expected</p>
+<hr>
+<h2>System Prompt Best Practices</h2>
+<h3>✅ DO:</h3>
+<p><strong>Be Specific About the Task</strong></p>
+<pre><code class="language-typescript">// ❌ Vague
+&quot;You help with routing&quot;
+
+// ✅ Specific
+&quot;You analyze user queries and route them to the correct specialized agent&quot;
+</code></pre>
+<p><strong>Provide Clear Constraints</strong></p>
+<pre><code class="language-typescript">&quot;Rules:
+- You MUST select exactly one agent
+- If the intent is unclear, default to &#39;rag&#39;
+- Never create new agent types&quot;
+</code></pre>
+<p><strong>Include Examples for Clarity</strong></p>
+<pre><code class="language-typescript">&quot;Examples:
+Input: &#39;How do React hooks work?&#39;
+Output: { agent: &#39;rag&#39;, query: &#39;React hooks explanation&#39; }
+
+Input: &#39;Write a LinkedIn post about my promotion&#39;
+Output: { agent: &#39;linkedin&#39;, query: &#39;LinkedIn post celebrating promotion&#39; }&quot;
+</code></pre>
+<p><strong>Define Output Format Explicitly</strong></p>
+<pre><code class="language-typescript">&quot;Return valid JSON with these exact fields:
+- agent: string (must be &#39;linkedin&#39; or &#39;rag&#39;)
+- query: string (refined version of user&#39;s question)&quot;
+</code></pre>
+<h3>❌ DON&#39;T:</h3>
+<p><strong>Be Unnecessarily Long</strong></p>
+<pre><code class="language-typescript">// ❌ Too verbose (wasted tokens)
+&quot;You are an incredibly sophisticated AI system with vast knowledge spanning countless domains. Your primary responsibility, which has been carefully crafted through extensive training...&quot; // [continues for 500 words]
+
+// ✅ Concise
+&quot;You select the best agent for each user query based on conversation context.&quot;
+</code></pre>
+<p><strong>Contradict Yourself</strong></p>
+<pre><code class="language-typescript">// ❌ Contradictory
+&quot;Always select the LinkedIn agent. Pick the best agent for the task.&quot;
+
+// ✅ Consistent
+&quot;Select the LinkedIn agent only when the user needs professional content creation or career advice.&quot;
+</code></pre>
+<p><strong>Use Ambiguous Language</strong></p>
+<pre><code class="language-typescript">// ❌ Unclear
+&quot;Try to maybe pick a good agent if you can&quot;
+
+// ✅ Clear
+&quot;Select the most appropriate agent based on the query intent&quot;
+</code></pre>
+<hr>
+<h2>System Caching: Why Consistency Matters</h2>
+<p>OpenAI&#39;s API <strong>caches identical system messages</strong> to save latency and cost.</p>
+<p><strong>What this means:</strong></p>
+<ul>
+<li>If your system prompt stays the same → cached (fast + cheap)</li>
+<li>If your system prompt changes often → no caching (slow + expensive)</li>
+</ul>
+<h3>Best Practice: Static System, Dynamic User Messages</h3>
+<pre><code class="language-typescript">// ✅ Good: Static system prompt (cached)
+system: &quot;You are a song search agent that returns JSON.&quot;
+user: `Find top 5 TikTok sounds for ${artistName}.` // ← Dynamic data goes here
+
+// ❌ Bad: Dynamic system prompt (cache busting)
+system: `You are a song search agent for ${artistName}.` // ← Changes every request
+user: &quot;Find top 5 TikTok sounds.&quot;
+</code></pre>
+<p><strong>Rule of thumb:</strong> Keep system prompts static. Inject dynamic data (like user names, filters, etc.) into user messages.</p>
+<hr>
+<h2>Temperature: Controlling Randomness</h2>
+<p><strong>Temperature</strong> controls how deterministic or creative the model&#39;s responses are.</p>
+<p><strong>Range:</strong> 0.0 to 2.0</p>
+<h3>How Temperature Works</h3>
+<pre><code>Input: &quot;The capital of France is&quot;
+
+Temperature 0.0 (Deterministic):
+- Paris (99.9%) ← Always picks highest probability
+- London (0.05%)
+- Rome (0.03%)
+→ Output: &quot;Paris&quot; (every single time)
+
+Temperature 0.7 (Balanced):
+- Paris (99.9%) ← Usually picks this
+- London (0.05%) ← Occasionally might pick
+- Rome (0.03%)
+→ Output: &quot;Paris&quot; (most times), occasionally varies
+
+Temperature 2.0 (Creative):
+- Paris (60%) ← Flattened probabilities
+- London (20%)
+- Rome (15%)
+- Madrid (5%)
+→ Output: Highly unpredictable!
+</code></pre>
+<h3>Temperature Selection Guide</h3>
+<table>
+<thead>
+<tr>
+<th>Temperature</th>
+<th>Use Case</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>0.0 - 0.3</strong></td>
+<td>Classification, routing, logic</td>
+<td>Agent selection, data extraction</td>
+</tr>
+<tr>
+<td><strong>0.7 - 1.0</strong></td>
+<td>General chat, Q&amp;A</td>
+<td>Customer support, documentation</td>
+</tr>
+<tr>
+<td><strong>1.5 - 2.0</strong></td>
+<td>Creative writing</td>
+<td>Brainstorming, poetry, storytelling</td>
+</tr>
+</tbody></table>
+<h3>For Agent Routing: Use Low Temperature</h3>
+<pre><code class="language-typescript">const response = await openai.chat.completions.create({
+	model: &#39;gpt-4o-mini&#39;,
+	temperature: 0.1, // ← Consistent routing decisions
+	messages: [...],
+});
+</code></pre>
+<p><strong>Why low temperature for routing?</strong></p>
+<ul>
+<li>&quot;Write a LinkedIn post&quot; should <strong>always</strong> → LinkedIn agent</li>
+<li>You want predictable, reliable routing behavior</li>
+<li>No randomness in production agent selection</li>
+</ul>
+<hr>
+<h2>Model Selection: Which Model When?</h2>
+<p>Different models have different strengths. Choose wisely based on your needs:</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Speed</th>
+<th>Cost</th>
+<th>Best For</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>gpt-4o</strong></td>
+<td>Slow</td>
+<td>High</td>
+<td>Complex reasoning, multi-step tasks</td>
+</tr>
+<tr>
+<td><strong>gpt-4o-mini</strong></td>
+<td>Fast</td>
+<td>Low</td>
+<td>Classification, search, simple tasks</td>
+</tr>
+<tr>
+<td><strong>gpt-4-turbo</strong></td>
+<td>Medium</td>
+<td>Medium</td>
+<td>Balanced use cases, chat applications</td>
+</tr>
+</tbody></table>
+<h3>Guidelines for Your RAG System</h3>
+<p><strong>Use gpt-4o-mini for:</strong></p>
+<ul>
+<li>✅ Agent selector (fast classification)</li>
+<li>✅ Query refinement</li>
+<li>✅ Simple filtering/search</li>
+</ul>
+<p><strong>Use gpt-4o for:</strong></p>
+<ul>
+<li>✅ RAG agent (synthesizing retrieved docs)</li>
+<li>✅ Complex multi-step reasoning</li>
+<li>✅ Content generation requiring nuance</li>
+</ul>
+<p><strong>Example in code:</strong></p>
+<pre><code class="language-typescript">// Selector agent (fast classification)
+await openai.chat.completions.create({
+	model: &#39;gpt-4o-mini&#39;, // ← Fast and cheap
+	temperature: 0.1,
+	messages: [...],
+});
+
+// RAG agent (complex synthesis)
+await openai.chat.completions.create({
+	model: &#39;gpt-4o&#39;, // ← Powerful reasoning
+	temperature: 0.7,
+	messages: [...],
+});
+</code></pre>
+<hr>
+<h2>Dynamic Variables in Prompts</h2>
+<p>Use template literals to inject dynamic data without breaking caching:</p>
+<pre><code class="language-typescript">// ✅ Good: Dynamic data in user message
+const systemPrompt = `You are a song search agent.`; // ← Static (cached)
+
+const userMessage = `Find top 5 ${genre} songs for ${artistName} in ${country}.`; // ← Dynamic
+
+// ❌ Bad: Dynamic data in system prompt
+const systemPrompt = `You are a song search agent for ${artistName}.`; // ← Not cached!
+</code></pre>
+<p><strong>Token budget rule:</strong> Keep total prompt tokens under 2,000 unless absolutely necessary. More tokens = more cost + latency.</p>
+<hr>
+<h2>Few-Shot vs Zero-Shot Prompting</h2>
+<h3>Zero-Shot: Instructions Only</h3>
+<pre><code class="language-typescript">system: &quot;You are an agent router. Select &#39;linkedin&#39; or &#39;rag&#39; based on the query.&quot;
+user: &quot;How do I use React hooks?&quot;
+</code></pre>
+<p><strong>When to use:</strong></p>
+<ul>
+<li>Task is clear and straightforward</li>
+<li>Model has been trained on similar tasks</li>
+<li>You want concise prompts</li>
+</ul>
+<h3>Few-Shot: Include Examples</h3>
+<pre><code class="language-typescript">system: `You are an agent router.
+
+Examples:
+Input: &quot;Write a LinkedIn post about my promotion&quot;
+Output: { agent: &quot;linkedin&quot;, query: &quot;LinkedIn promotion post&quot; }
+
+Input: &quot;Explain React hooks&quot;
+Output: { agent: &quot;rag&quot;, query: &quot;React hooks explanation&quot; }
+
+Now classify the user&#39;s query.`
+</code></pre>
+<p><strong>When to use:</strong></p>
+<ul>
+<li>Task requires nuance</li>
+<li>Output format is complex</li>
+<li>Model needs guidance on edge cases</li>
+</ul>
+<p><strong>For agent routing:</strong> Start with zero-shot. Add few-shot examples only if you see misclassifications.</p>
+<hr>
+<h2>Prompt Hygiene Checklist</h2>
+<p>Before deploying any prompt, check:</p>
+<ul>
+<li>✅ <strong>One clear instruction</strong> - No ambiguity about the task</li>
+<li>✅ <strong>Explicit output format</strong> - JSON schema, Markdown, or specific structure</li>
+<li>✅ <strong>No unnecessary examples</strong> - Only include what&#39;s truly needed</li>
+<li>✅ <strong>Static system prompts</strong> - Dynamic data goes in user messages</li>
+<li>✅ <strong>Enforce structure with Zod</strong> - Use <code>zodResponseFormat()</code> for type safety</li>
+</ul>
+<h3>Example: Well-Structured Prompt</h3>
+<pre><code class="language-typescript">import { zodResponseFormat } from &#39;openai/helpers/zod&#39;;
+import { z } from &#39;zod&#39;;
+
+const agentSelectionSchema = z.object({
+	agent: z.enum([&#39;linkedin&#39;, &#39;rag&#39;]),
+	query: z.string(),
+});
+
+const response = await openai.chat.completions.create({
+	model: &#39;gpt-4o-mini&#39;,
+	temperature: 0.1,
+	messages: [
+		{
+			role: &#39;system&#39;,
+			content: &#39;You are an agent router. Analyze queries and select the best agent.&#39;,
+		},
+		{
+			role: &#39;user&#39;,
+			content: userQuery,
+		},
+	],
+	response_format: zodResponseFormat(agentSelectionSchema, &#39;agent_selection&#39;),
+});
+</code></pre>
+<p><strong>Why this works:</strong></p>
+<ul>
+<li>Clear system role</li>
+<li>Low temperature for consistency</li>
+<li>Enforced structure via Zod schema</li>
+<li>Simple, focused prompt</li>
+</ul>
+<hr>
+<h2>Common Pitfalls and How to Avoid Them</h2>
+<h3>Pitfall 1: Over-Prompting</h3>
+<pre><code class="language-typescript">// ❌ Too much instruction
+&quot;You are an incredibly sophisticated routing system with years of experience in natural language understanding and intent classification. Your goal is to carefully analyze...&quot;
+// [300 words later...]
+
+// ✅ Concise and clear
+&quot;You route user queries to the correct agent based on intent.&quot;
+</code></pre>
+<h3>Pitfall 2: Inconsistent Routing</h3>
+<pre><code class="language-typescript">// ❌ High temperature = unpredictable
+temperature: 1.5
+
+// ✅ Low temperature = consistent
+temperature: 0.1
+</code></pre>
+<h3>Pitfall 3: No Output Structure</h3>
+<pre><code class="language-typescript">// ❌ Unstructured output
+&quot;Return the agent and query somehow&quot;
+
+// ✅ Structured with Zod
+response_format: zodResponseFormat(schema, &#39;selection&#39;)
+</code></pre>
+<hr>
+<h2>Challenge: Design Agent Prompts</h2>
+<p>Before moving to implementation, plan your prompts. Understanding these decisions will help you when you implement the agents in the next module.</p>
+<h3>Scenario</h3>
+<p>You&#39;re building an agent system with three components:</p>
+<ol>
+<li><strong>Selector Agent</strong>: Routes user queries to the appropriate specialized agent</li>
+<li><strong>LinkedIn Agent</strong>: Generates professional content</li>
+<li><strong>RAG Agent</strong>: Answers technical documentation questions</li>
+</ol>
+<h3>Your Task</h3>
+<p>For each agent, decide:</p>
+<ol>
+<li><strong>Model</strong>: <code>gpt-4o</code>, <code>gpt-4o-mini</code>, or <code>gpt-4-turbo</code></li>
+<li><strong>Temperature</strong>: <code>0.0</code>, <code>0.5</code>, <code>0.8</code>, or <code>1.2</code></li>
+<li><strong>System Prompt</strong>: Write a 2-3 sentence system prompt</li>
+<li><strong>Examples Needed</strong>: Zero-shot or few-shot? Why?</li>
+</ol>
+<p><strong>Example answer for selector agent:</strong></p>
+<pre><code>Model: gpt-4o-mini (fast classification)
+Temperature: 0.1 (consistent routing)
+System Prompt: &quot;You are an agent router. Analyze user queries and select either &#39;linkedin&#39; or &#39;rag&#39; based on intent.&quot;
+Examples: Zero-shot (task is straightforward)
+</code></pre>
+<p><strong>Write your answers for:</strong></p>
+<ul>
+<li>Selector agent (routes requests)</li>
+<li>LinkedIn agent (generates content)</li>
+<li>RAG agent (answers docs questions)</li>
+</ul>
+<p><strong>Where to write your answers:</strong><br>Create a document in your notes or a markdown file. You&#39;ll reference this when implementing the agents.</p>
+<p><strong>Time estimate:</strong> 15-20 minutes</p>
+<hr>
+<h2>What You&#39;ve Learned</h2>
+<p>Now you understand:</p>
+<ul>
+<li>✅ The prompt stack: system, user, assistant roles</li>
+<li>✅ System prompt best practices</li>
+<li>✅ Temperature control and when to use each range</li>
+<li>✅ Model selection based on task complexity</li>
+<li>✅ Static vs dynamic prompt content for caching</li>
+<li>✅ Zero-shot vs few-shot prompting strategies</li>
+<li>✅ Prompt hygiene and common pitfalls</li>
+</ul>
+<hr>
+<h2>What&#39;s Next</h2>
+<p>Now that you understand prompting fundamentals, you&#39;re ready to build the <strong>agent architecture</strong> in the next module. You&#39;ll:</p>
+<ul>
+<li>Implement the selector agent using these prompting techniques</li>
+<li>Create specialized agents (LinkedIn and RAG)</li>
+<li>Build a routing system that ties everything together</li>
+</ul>
+<hr>
+<h2>Quick Reference</h2>
+<p><strong>Prompt Structure:</strong></p>
+<pre><code class="language-typescript">const systemPrompt = `You are [role].
+
+[Context/available options]
+
+Your task:
+1. [Step 1]
+2. [Step 2]
+
+[Output format]`;
+</code></pre>
+<p><strong>Temperature Guide:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Temperature</th>
+<th>Use Case</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0.0 - 0.3</td>
+<td>Classification, routing</td>
+<td>Agent selection, data extraction</td>
+</tr>
+<tr>
+<td>0.7 - 1.0</td>
+<td>General Q&amp;A, chat</td>
+<td>Customer support, tutoring</td>
+</tr>
+<tr>
+<td>1.5 - 2.0</td>
+<td>Creative writing</td>
+<td>Poetry, brainstorming</td>
+</tr>
+</tbody></table>
+<p><strong>Model Selection:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Speed</th>
+<th>Cost</th>
+<th>Best For</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>gpt-4o</strong></td>
+<td>Slow</td>
+<td>High</td>
+<td>Complex reasoning, multi-step tasks</td>
+</tr>
+<tr>
+<td><strong>gpt-4o-mini</strong></td>
+<td>Fast</td>
+<td>Low</td>
+<td>Classification, search, simple tasks</td>
+</tr>
+<tr>
+<td><strong>gpt-4-turbo</strong></td>
+<td>Medium</td>
+<td>Medium</td>
+<td>Balanced use cases, chat applications</td>
+</tr>
+</tbody></table>
+<p><strong>API Call Pattern:</strong></p>
+<pre><code class="language-typescript">const response = await openai.chat.completions.create({
+	model: &#39;gpt-4o-mini&#39;,
+	temperature: 0.1,
+	messages: [
+		{ role: &#39;system&#39;, content: systemPrompt },
+		{ role: &#39;user&#39;, content: query },
+	],
+	response_format: zodResponseFormat(schema, &#39;name&#39;),
+});
+</code></pre>
+<hr>
+<h2>Further Reading</h2>
+<h3>Recommended Articles</h3>
+<p><strong>⭐ Prompt Engineering for Business Performance (Anthropic)</strong></p>
+<ul>
+<li><strong>Link:</strong> <a href="https://www.anthropic.com/news/prompt-engineering-for-business-performance">https://www.anthropic.com/news/prompt-engineering-for-business-performance</a></li>
+<li><strong>Why:</strong> Best practices for prompts, few-shot vs zero-shot, measuring quality</li>
+<li><strong>Time:</strong> ~10 minutes</li>
+<li><strong>Key for:</strong> Writing effective prompts for your agents</li>
+</ul>
+<h3>Technical Documentation</h3>
+<ul>
+<li><a href="https://platform.openai.com/docs/guides/prompt-engineering">OpenAI Prompt Engineering Guide</a></li>
+<li><a href="https://platform.openai.com/docs/api-reference/chat/create#temperature">Temperature and Top P Explained</a></li>
+<li><a href="https://platform.openai.com/docs/guides/prompt-engineering/strategy-write-clear-instructions">System Message Best Practices</a></li>
+<li><a href="https://platform.openai.com/docs/models">OpenAI Model Comparison</a></li>
+</ul>
+
+</body>
+</html>

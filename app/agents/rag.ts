@@ -19,9 +19,14 @@ export async function ragAgent(request: AgentRequest): Promise<AgentResponse> {
 				name: 'generate_linkedin_post',
 				description: 'Generate a LinkedIn post based on a user query',
 				inputSchema: z.object({
-					query: z.string(),
+					query: z
+						.string()
+						.describe(
+							'the user query to generate a LinkedIn post for',
+						),
 				}),
 				execute: async ({ query }) => {
+					console.log('query', query);
 					const embedding = await openaiClient.embeddings.create({
 						model: 'text-embedding-3-small',
 						dimensions: 512,
@@ -57,11 +62,6 @@ export async function ragAgent(request: AgentRequest): Promise<AgentResponse> {
 						topN: 10,
 						returnDocuments: true,
 					});
-
-					console.log(
-						'rerankedDocuments',
-						JSON.stringify(rerankedDocuments, null, 2),
-					);
 
 					return rerankedDocuments.results.map(
 						(result) => result.document?.text,

@@ -103,6 +103,7 @@ export default function Home() {
 			const { agent, query, clarification } = await agentResponse.json();
 
 			if (!agent) {
+				// we didn't select an agent, so we just send the clarification
 				setMessages((prev) => [
 					...prev,
 					{

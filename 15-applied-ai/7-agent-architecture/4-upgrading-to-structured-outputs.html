@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upgrading to Structured Outputs</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      color: #333;
+    }
+
+    h1 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 32px;
+      font-weight: bold;
+    }
+
+    h2 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    h3 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    h4 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    h5 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    h6 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    p {
+      margin: 12px 0;
+      line-height: 1.6;
+    }
+
+    a {
+      color: #0066cc;
+      text-decoration: underline;
+    }
+
+    strong {
+      font-weight: bold;
+    }
+
+    em {
+      font-style: italic;
+    }
+
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.9em;
+    }
+
+    pre {
+      background-color: #f4f4f4;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      margin: 20px 0;
+    }
+
+    pre code {
+      background-color: transparent;
+      padding: 0;
+    }
+
+    blockquote {
+      border-left: 4px solid #ddd;
+      margin: 20px 0;
+      padding: 10px 20px;
+      background-color: #f9f9f9;
+    }
+
+    hr {
+      border: none;
+      border-top: 2px solid #eee;
+      margin: 30px 0;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 20px 0;
+    }
+
+    iframe {
+      max-width: 100%;
+      margin: 20px 0;
+    }
+
+    details {
+      margin: 20px 0;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border-radius: 5px;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    ol, ul {
+      margin: 10px 0;
+      padding-left: 30px;
+    }
+
+    li {
+      margin: 5px 0;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 20px 0;
+      border: 1px solid #ddd;
+    }
+
+    th, td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f4f4f4;
+      font-weight: bold;
+    }
+
+    input[type="checkbox"] {
+      margin-right: 5px;
+    }
+  </style>
+</head>
+<body>
+<h1>Upgrading to Structured Outputs</h1>
+<p>In the previous module, you implemented the selector using text parsing. Now you&#39;ll upgrade it to use OpenAI&#39;s structured outputs feature, which guarantees valid JSON responses every time.</p>
+<hr>
+<h2>Video Walkthrough</h2>
+<p>Watch this guide to structured outputs:</p>
+<iframe src="https://share.descript.com/embed/V2JXix9ZTB0" width="640" height="360" frameborder="0" allowfullscreen></iframe>
+
+<hr>
+<h2>What You&#39;ll Learn</h2>
+<p>By the end of this module, you&#39;ll have:</p>
+<ul>
+<li>Understanding of OpenAI&#39;s structured outputs feature</li>
+<li>Knowledge of Zod schemas for runtime validation</li>
+<li>A more reliable, type-safe selector implementation</li>
+<li>Experience refactoring from text parsing to structured outputs</li>
+</ul>
+<hr>
+<h2>The Problem with Text Parsing</h2>
+<p>Your current implementation works, but it has limitations:</p>
+<p><strong>LLM might return unpredictable formats:</strong></p>
+<pre><code class="language-typescript">// Expected:
+&quot;AGENT: rag\nQUERY: useState info&quot;
+
+// But you might get:
+&quot;Here&#39;s my response:\nAGENT: rag\nQUERY: useState info\nHope that helps!&quot;
+// Or:
+&quot;AGENT rag\nQUERY: useState info&quot;  // Missing colon!
+// Or:
+&quot;agent: rag\nquery: useState&quot;     // Wrong case!
+</code></pre>
+<p><strong>Your parsing code needs to handle all these edge cases:</strong></p>
+<pre><code class="language-typescript">const lines = content.split(&#39;\n&#39;);
+const agentLine = lines.find((line) =&gt; line.startsWith(&#39;AGENT:&#39;));
+// What if it&#39;s lowercase? What if there&#39;s extra whitespace?
+</code></pre>
+<hr>
+<h2>The Solution: Structured Outputs</h2>
+<p><strong>Structured outputs</strong> guarantee that the LLM returns JSON matching your exact schema.</p>
+<p><strong>How it works:</strong></p>
+<pre><code class="language-typescript">// 1. You define what you want
+const schema = z.object({
+  agent: z.enum([&#39;linkedin&#39;, &#39;rag&#39;]),
+  query: z.string(),
+});
+
+// 2. OpenAI constrains the model to only output valid JSON matching this schema
+// 3. You get a guaranteed valid, type-safe response
+</code></pre>
+<h3>Benefits Comparison</h3>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Text Parsing</th>
+<th>Structured Outputs</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Type Safety</td>
+<td>❌ No</td>
+<td>✅ Yes (Zod validates)</td>
+</tr>
+<tr>
+<td>Parsing</td>
+<td>❌ Manual</td>
+<td>✅ Automatic</td>
+</tr>
+<tr>
+<td>Reliability</td>
+<td>⚠️ Can fail</td>
+<td>✅ Always valid JSON</td>
+</tr>
+<tr>
+<td>DX</td>
+<td>❌ No autocomplete</td>
+<td>✅ Full TypeScript support</td>
+</tr>
+<tr>
+<td>Debugging</td>
+<td>✅ Easy to see</td>
+<td>⚠️ Less transparent</td>
+</tr>
+<tr>
+<td>Code Complexity</td>
+<td>⚠️ More parsing logic</td>
+<td>✅ Simpler</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>Documentation Resources</h2>
+<p>Before you start, familiarize yourself with these official docs:</p>
+<p><strong>OpenAI Structured Outputs:</strong></p>
+<ul>
+<li><a href="https://platform.openai.com/docs/guides/structured-outputs">Structured Outputs Guide</a> - Complete guide to structured outputs</li>
+<li><a href="https://platform.openai.com/docs/api-reference/chat/create#chat-create-response_format">API Reference</a> - <code>response_format</code> parameter details</li>
+</ul>
+<p><strong>Zod Schema Validation:</strong></p>
+<ul>
+<li><a href="https://zod.dev/">Zod Documentation</a> - Full Zod documentation</li>
+<li><a href="https://github.com/colinhacks/zod">Zod GitHub</a> - Examples and advanced usage</li>
+<li><a href="https://github.com/openai/openai-node/blob/master/helpers.md">OpenAI Helpers: Zod</a> - <code>zodResponseFormat</code> helper</li>
+</ul>
+<hr>
+<h2>Understanding Zod Schemas</h2>
+<p>Before we refactor, let&#39;s understand the schemas in <code>app/agents/types.ts</code>:</p>
+<pre><code class="language-typescript">import { z } from &#39;zod&#39;;
+
+// Message schema - validates incoming messages
+export const messageSchema = z.object({
+  role: z.enum([&#39;user&#39;, &#39;assistant&#39;, &#39;system&#39;]),
+  content: z.string(),
+});
+
+// Agent type schema - the valid agent names
+export const agentTypeSchema = z.enum([&#39;linkedin&#39;, &#39;rag&#39;]);
+
+// Selection schema - what the selector returns
+const agentSelectionSchema = z.object({
+  agent: agentTypeSchema,
+  query: z.string(),
+});
+</code></pre>
+<p><strong>What Zod does:</strong></p>
+<ul>
+<li>Validates data at runtime</li>
+<li>Provides TypeScript types automatically</li>
+<li>Throws descriptive errors if validation fails</li>
+<li>Composes schemas (agentSelectionSchema uses agentTypeSchema)</li>
+</ul>
+<p><strong>Example validation:</strong></p>
+<pre><code class="language-typescript">// ✅ Valid
+agentSelectionSchema.parse({ agent: &#39;rag&#39;, query: &#39;React hooks&#39; })
+
+// ❌ Invalid - throws error
+agentSelectionSchema.parse({ agent: &#39;invalid&#39;, query: &#39;test&#39; })
+// Error: Invalid enum value. Expected &#39;linkedin&#39; | &#39;rag&#39;, received &#39;invalid&#39;
+</code></pre>
+<hr>
+<h2>Your Challenge: Refactor to Structured Outputs</h2>
+<p>Now refactor your selector to use structured outputs.</p>
+<h3>Step 1: Import the Helper</h3>
+<p>Add this import at the top of <code>app/api/select-agent/route.ts</code>:</p>
+<pre><code class="language-typescript">import { zodResponseFormat } from &#39;openai/helpers/zod&#39;;
+</code></pre>
+<h3>Step 2: Update the OpenAI Call</h3>
+<p>Replace your <code>openaiClient.chat.completions.create()</code> call with the structured outputs API.</p>
+<p><strong>Requirements:</strong></p>
+<ul>
+<li>Use <code>openaiClient.responses.parse()</code> instead of <code>chat.completions.create()</code></li>
+<li>Change <code>messages</code> parameter to <code>input</code></li>
+<li>Add <code>text.format</code> with <code>zodResponseFormat(agentSelectionSchema, &#39;agent_selection&#39;)</code></li>
+<li>Remove &quot;respond in this exact format&quot; from your prompt (OpenAI handles it)</li>
+</ul>
+<p><strong>Hints:</strong></p>
+<pre><code class="language-typescript">const result = await openaiClient.responses.parse({
+  model: &#39;gpt-4o-mini&#39;,
+  input: [
+    {
+      role: &#39;system&#39;,
+      content: `You are an agent router. Based on the conversation history, determine which agent should handle the request and create a focused query.
+
+Available agents:
+${agentDescriptions}
+
+The query should be a refined, clear version of what the user wants, removing conversational fluff.`,
+    },
+    ...recentMessages.map((msg) =&gt; ({
+      role: msg.role,
+      content: msg.content,
+    })),
+  ],
+  text: {
+    format: zodResponseFormat(agentSelectionSchema, &#39;agent_selection&#39;),
+  },
+});
+</code></pre>
+<p><strong>Key changes:</strong></p>
+<ul>
+<li><code>responses.parse()</code> instead of <code>chat.completions.create()</code></li>
+<li><code>input</code> instead of <code>messages</code></li>
+<li>Added <code>text.format</code> with Zod schema</li>
+<li>Simplified system prompt (no format instructions needed)</li>
+</ul>
+<h3>Step 3: Remove Parsing Logic</h3>
+<p>Replace all your text parsing code with direct access to the parsed result.</p>
+<p><strong>Requirements:</strong></p>
+<ul>
+<li>Remove the <code>content.split()</code>, <code>.find()</code>, and string manipulation code</li>
+<li>Access the result directly from <code>result.output_parsed</code></li>
+<li>Return <code>agent</code> and <code>query</code> from the parsed result</li>
+</ul>
+<p><strong>Hints:</strong></p>
+<pre><code class="language-typescript">// Remove all this:
+// const content = completion.choices[0]?.message?.content;
+// const lines = content.split(&#39;\n&#39;);
+// const agentLine = lines.find(...)
+// const agent = agentLine?.split(&#39;:&#39;)[1]?.trim();
+
+// Replace with:
+return NextResponse.json({
+  agent: result.output_parsed.agent,
+  query: result.output_parsed.query,
+});
+</code></pre>
+<p><strong>Benefits:</strong></p>
+<ul>
+<li>No manual string splitting</li>
+<li>No validation logic needed (Zod handles it)</li>
+<li>Full TypeScript autocomplete on <code>result.output_parsed</code></li>
+<li>Guaranteed to match schema or throw error (caught by try/catch)</li>
+</ul>
+<hr>
+<h2>Testing Your Refactored Implementation</h2>
+<p>Run the same curl tests from the previous module. The responses should be identical!</p>
+<h3>Test 1: RAG Query</h3>
+<pre><code class="language-bash">curl -X POST http://localhost:3000/api/select-agent \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{
+    &quot;messages&quot;: [
+      {
+        &quot;role&quot;: &quot;user&quot;,
+        &quot;content&quot;: &quot;Explain React hooks&quot;
+      }
+    ]
+  }&#39;
+</code></pre>
+<p><strong>Expected response:</strong></p>
+<pre><code class="language-json">{
+  &quot;agent&quot;: &quot;rag&quot;,
+  &quot;query&quot;: &quot;React hooks explanation&quot;
+}
+</code></pre>
+<h3>Test 2: LinkedIn Query</h3>
+<pre><code class="language-bash">curl -X POST http://localhost:3000/api/select-agent \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{
+    &quot;messages&quot;: [
+      {
+        &quot;role&quot;: &quot;user&quot;,
+        &quot;content&quot;: &quot;Help me write a LinkedIn post about AI&quot;
+      }
+    ]
+  }&#39;
+</code></pre>
+<p><strong>Expected response:</strong></p>
+<pre><code class="language-json">{
+  &quot;agent&quot;: &quot;linkedin&quot;,
+  &quot;query&quot;: &quot;LinkedIn post about AI&quot;
+}
+</code></pre>
+<h3>Test 3: Edge Case (Invalid Agent Name)</h3>
+<p>Try to trick it by mentioning multiple agents:</p>
+<pre><code class="language-bash">curl -X POST http://localhost:3000/api/select-agent \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{
+    &quot;messages&quot;: [
+      {
+        &quot;role&quot;: &quot;user&quot;,
+        &quot;content&quot;: &quot;Can you tell me about React and also help with my LinkedIn?&quot;
+      }
+    ]
+  }&#39;
+</code></pre>
+<p><strong>What happens:</strong></p>
+<ul>
+<li>OpenAI&#39;s structured output will pick ONE valid agent (probably &quot;rag&quot; since React is mentioned first)</li>
+<li>The schema enforces <code>z.enum([&#39;linkedin&#39;, &#39;rag&#39;])</code> - can&#39;t return both!</li>
+<li>You get a valid response even for ambiguous queries</li>
+</ul>
+<hr>
+<h2>Behind the Scenes: How It Works</h2>
+<p><strong>When you use structured outputs:</strong></p>
+<ol>
+<li>OpenAI converts your Zod schema to JSON Schema</li>
+<li>The model&#39;s token generation is <strong>constrained</strong> by the schema</li>
+<li>The model can literally only output valid JSON matching your schema</li>
+<li>Response is automatically validated against Zod schema</li>
+<li>You get a type-safe object (no parsing needed)</li>
+</ol>
+<p><strong>Example:</strong></p>
+<pre><code class="language-typescript">// Your schema says agent must be &#39;linkedin&#39; or &#39;rag&#39;
+agent: z.enum([&#39;linkedin&#39;, &#39;rag&#39;])
+
+// The model cannot output:
+// - &quot;linkedin_agent&quot; (not in enum)
+// - &quot;RAG&quot; (wrong case)
+// - [&quot;rag&quot;] (wrong type)
+// - null (not allowed)
+
+// It can ONLY output exactly: &quot;linkedin&quot; or &quot;rag&quot;
+</code></pre>
+<hr>
+<h2>Comparing the Two Approaches</h2>
+<h3>Text-Based Version (Before)</h3>
+<pre><code class="language-typescript">// Call OpenAI
+const completion = await openaiClient.chat.completions.create({
+  model: &#39;gpt-4o-mini&#39;,
+  messages: [...],
+});
+
+// Parse response manually
+const content = completion.choices[0]?.message?.content;
+const lines = content.split(&#39;\n&#39;);
+const agentLine = lines.find((line) =&gt; line.startsWith(&#39;AGENT:&#39;));
+const agent = agentLine?.split(&#39;:&#39;)[1]?.trim();
+
+// Validate manually
+const validAgent =
+  agent &amp;&amp; agentConfigs[agent as keyof typeof agentConfigs] ? agent : &#39;rag&#39;;
+
+return NextResponse.json({ agent: validAgent, query });
+</code></pre>
+<p><strong>Lines of code:</strong> ~20<br><strong>Type safety:</strong> ❌ None<br><strong>Can fail:</strong> ⚠️ Yes (parsing errors)</p>
+<h3>Structured Outputs Version (After)</h3>
+<pre><code class="language-typescript">// Call OpenAI with schema
+const result = await openaiClient.responses.parse({
+  model: &#39;gpt-4o-mini&#39;,
+  input: [...],
+  text: {
+    format: zodResponseFormat(agentSelectionSchema, &#39;agent_selection&#39;),
+  },
+});
+
+// Use parsed result directly
+return NextResponse.json({
+  agent: result.output_parsed.agent,
+  query: result.output_parsed.query,
+});
+</code></pre>
+<p><strong>Lines of code:</strong> ~8<br><strong>Type safety:</strong> ✅ Full TypeScript support<br><strong>Can fail:</strong> ✅ Only on validation errors (caught by try/catch)</p>
+<hr>
+<h2>When to Use Each Approach</h2>
+<h3>Use Text Parsing When:</h3>
+<ul>
+<li>✅ Prototyping and learning</li>
+<li>✅ Simple output formats</li>
+<li>✅ You want to see raw LLM responses for debugging</li>
+<li>✅ Output format might change frequently</li>
+</ul>
+<h3>Use Structured Outputs When:</h3>
+<ul>
+<li>✅ Production applications</li>
+<li>✅ Type safety is important</li>
+<li>✅ Complex nested schemas</li>
+<li>✅ You want guaranteed valid responses</li>
+<li>✅ Multiple developers working on the codebase</li>
+</ul>
+<p><strong>For this project:</strong> Structured outputs are recommended for production!</p>
+<hr>
+<h2>Common Issues and Solutions</h2>
+<h3>Issue: Schema Not Found Error</h3>
+<p><strong>Symptoms:</strong></p>
+<pre><code>Cannot find name &#39;agentSelectionSchema&#39;
+</code></pre>
+<p><strong>Cause:</strong> Schema is not exported from <code>types.ts</code></p>
+<p><strong>Solution:</strong> Export the schema:</p>
+<pre><code class="language-typescript">export const agentSelectionSchema = z.object({
+  agent: agentTypeSchema,
+  query: z.string(),
+});
+</code></pre>
+<h3>Issue: output_parsed is undefined</h3>
+<p><strong>Symptoms:</strong></p>
+<pre><code>Cannot read property &#39;agent&#39; of undefined
+</code></pre>
+<p><strong>Cause:</strong> Response parsing failed</p>
+<p><strong>Solution:</strong> Add null check:</p>
+<pre><code class="language-typescript">if (!result.output_parsed) {
+  throw new Error(&#39;Failed to parse response&#39;);
+}
+return NextResponse.json({
+  agent: result.output_parsed.agent,
+  query: result.output_parsed.query,
+});
+</code></pre>
+<h3>Issue: Still Getting Text Responses</h3>
+<p><strong>Symptoms:</strong><br>Response looks like text instead of structured JSON</p>
+<p><strong>Cause:</strong> Using wrong API method</p>
+<p><strong>Solution:</strong> Make sure you&#39;re using <code>responses.parse()</code> not <code>chat.completions.create()</code></p>
+<hr>
+<details>
+<summary>Click to reveal the full refactored solution</summary>
+
+<pre><code class="language-typescript">import { NextRequest, NextResponse } from &#39;next/server&#39;;
+import { openaiClient } from &#39;@/app/libs/openai/openai&#39;;
+import { zodResponseFormat } from &#39;openai/helpers/zod&#39;;
+import { z } from &#39;zod&#39;;
+import { agentTypeSchema, messageSchema } from &#39;@/app/agents/types&#39;;
+import { agentConfigs } from &#39;@/app/agents/config&#39;;
+
+const selectAgentSchema = z.object({
+  messages: z.array(messageSchema).min(1),
+});
+
+const agentSelectionSchema = z.object({
+  agent: agentTypeSchema,
+  query: z.string(),
+});
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const parsed = selectAgentSchema.parse(body);
+    const { messages } = parsed;
+
+    const recentMessages = messages.slice(-5);
+
+    const agentDescriptions = Object.entries(agentConfigs)
+      .map(([key, config]) =&gt; `- &quot;${key}&quot;: ${config.description}`)
+      .join(&#39;\n&#39;);
+
+    // Use structured outputs
+    const result = await openaiClient.responses.parse({
+      model: &#39;gpt-4o-mini&#39;,
+      input: [
+        {
+          role: &#39;system&#39;,
+          content: `You are an agent router. Based on the conversation history, determine which agent should handle the request and create a focused query.
+
+Available agents:
+${agentDescriptions}
+
+The query should be a refined, clear version of what the user wants, removing conversational fluff.`,
+        },
+        ...recentMessages.map((msg) =&gt; ({
+          role: msg.role,
+          content: msg.content,
+        })),
+      ],
+      text: {
+        format: zodResponseFormat(agentSelectionSchema, &#39;agent_selection&#39;),
+      },
+    });
+
+    // Return parsed result directly
+    return NextResponse.json({
+      agent: result.output_parsed.agent,
+      query: result.output_parsed.query,
+    });
+  } catch (error) {
+    console.error(&#39;Error selecting agent:&#39;, error);
+    return NextResponse.json(
+      { error: &#39;Failed to select agent&#39; },
+      { status: 500 }
+    );
+  }
+}
+</code></pre>
+</details>
+
+<hr>
+<h2>What You&#39;ve Learned</h2>
+<p>Now you understand:</p>
+<ul>
+<li>✅ OpenAI&#39;s structured outputs feature</li>
+<li>✅ How Zod schemas enforce runtime validation</li>
+<li>✅ Benefits of structured outputs over text parsing</li>
+<li>✅ How to refactor from text-based to structured approach</li>
+<li>✅ When to use each approach</li>
+</ul>
+<hr>
+<h2>What&#39;s Next</h2>
+<p>Excellent! Your selector is now production-ready with type-safe, reliable routing.</p>
+<p><strong>Coming up:</strong></p>
+<ul>
+<li><strong>Module 8:</strong> Building the LinkedIn Agent with fine-tuned models</li>
+<li><strong>Module 9:</strong> Building the RAG Agent with retrieval and context</li>
+<li><strong>Module 10:</strong> Connecting everything with a streaming chat interface</li>
+</ul>
+<hr>
+<h2>Quick Reference</h2>
+<p><strong>Structured outputs pattern:</strong></p>
+<pre><code class="language-typescript">import { zodResponseFormat } from &#39;openai/helpers/zod&#39;;
+
+const schema = z.object({
+  field1: z.string(),
+  field2: z.enum([&#39;option1&#39;, &#39;option2&#39;]),
+});
+
+const result = await openaiClient.responses.parse({
+  model: &#39;gpt-4o-mini&#39;,
+  input: [...messages],
+  text: {
+    format: zodResponseFormat(schema, &#39;schema_name&#39;),
+  },
+});
+
+const data = result.output_parsed; // Type-safe!
+</code></pre>
+<p><strong>Zod schema examples:</strong></p>
+<pre><code class="language-typescript">z.string()                          // Any string
+z.number()                          // Any number
+z.boolean()                         // true or false
+z.enum([&#39;a&#39;, &#39;b&#39;, &#39;c&#39;])            // One of these strings
+z.array(z.string())                 // Array of strings
+z.object({ key: z.string() })       // Object with structure
+z.string().optional()               // Optional string
+</code></pre>
+<p><strong>Further Reading:</strong></p>
+<ul>
+<li><a href="https://platform.openai.com/docs/guides/structured-outputs/best-practices">OpenAI Structured Outputs Best Practices</a></li>
+<li><a href="https://zod.dev/?id=type-inference">Zod Type Inference Guide</a></li>
+<li><a href="https://zod.dev/?id=json-schema">JSON Schema vs Zod</a></li>
+</ul>
+
+</body>
+</html>

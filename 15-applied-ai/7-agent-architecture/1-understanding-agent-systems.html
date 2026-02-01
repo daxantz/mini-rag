@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Understanding Agent Systems</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      color: #333;
+    }
+
+    h1 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 32px;
+      font-weight: bold;
+    }
+
+    h2 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    h3 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    h4 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    h5 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    h6 {
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    p {
+      margin: 12px 0;
+      line-height: 1.6;
+    }
+
+    a {
+      color: #0066cc;
+      text-decoration: underline;
+    }
+
+    strong {
+      font-weight: bold;
+    }
+
+    em {
+      font-style: italic;
+    }
+
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.9em;
+    }
+
+    pre {
+      background-color: #f4f4f4;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      margin: 20px 0;
+    }
+
+    pre code {
+      background-color: transparent;
+      padding: 0;
+    }
+
+    blockquote {
+      border-left: 4px solid #ddd;
+      margin: 20px 0;
+      padding: 10px 20px;
+      background-color: #f9f9f9;
+    }
+
+    hr {
+      border: none;
+      border-top: 2px solid #eee;
+      margin: 30px 0;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 20px 0;
+    }
+
+    iframe {
+      max-width: 100%;
+      margin: 20px 0;
+    }
+
+    details {
+      margin: 20px 0;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border-radius: 5px;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    ol, ul {
+      margin: 10px 0;
+      padding-left: 30px;
+    }
+
+    li {
+      margin: 5px 0;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 20px 0;
+      border: 1px solid #ddd;
+    }
+
+    th, td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f4f4f4;
+      font-weight: bold;
+    }
+
+    input[type="checkbox"] {
+      margin-right: 5px;
+    }
+  </style>
+</head>
+<body>
+<h1>Understanding Agent Systems</h1>
+<p>You&#39;ve built the foundation - now let&#39;s make your RAG system intelligent. Agents are specialized AI systems that handle different types of tasks. Think of them like departments in a company.</p>
+<hr>
+<h2>Video Walkthrough</h2>
+<p>Watch this introduction to agent architecture:</p>
+<iframe src="https://share.descript.com/embed/NU3Y2poBr00" width="640" height="360" frameborder="0" allowfullscreen></iframe>
+
+<hr>
+<h2>What You&#39;ll Build</h2>
+<p>By the end of this module, you&#39;ll understand:</p>
+<ul>
+<li>What agents are and why we need them</li>
+<li>How to route requests to the right agent</li>
+<li>The agent architecture pattern</li>
+<li>How to build an agent selector</li>
+</ul>
+<hr>
+<h2>The Problem: One Model Can&#39;t Do Everything Well</h2>
+<p>Imagine you have a chatbot that needs to:</p>
+<ul>
+<li>Answer questions about your LinkedIn content (needs your writing style)</li>
+<li>Answer questions about React documentation (needs up-to-date info)</li>
+<li>Handle casual conversation (needs general knowledge)</li>
+</ul>
+<p><strong>One approach: Use one model for everything</strong></p>
+<pre><code class="language-typescript">// ❌ The naive approach
+const response = await openai.chat.completions.create({
+	model: &#39;gpt-4o&#39;,
+	messages: [
+		{ role: &#39;system&#39;, content: &#39;Answer any question&#39; },
+		{ role: &#39;user&#39;, content: userMessage },
+	],
+});
+</code></pre>
+<p><strong>Problems:</strong></p>
+<ul>
+<li>Can&#39;t fine-tune for specific tasks</li>
+<li>No specialized knowledge retrieval</li>
+<li>Same prompt for all scenarios</li>
+<li>Expensive (always uses big model)</li>
+</ul>
+<hr>
+<h2>The Solution: Agent Architecture</h2>
+<p>Instead, use specialized agents:</p>
+<pre><code>User Question
+    ↓
+┌─────────────┐
+│   Selector  │ ← Analyzes question and conversation
+│   Agent     │   Decides which agent to use
+└─────────────┘
+    ↓
+    ├→ LinkedIn Agent (fine-tuned model)
+    ├→ RAG Agent (retrieval + GPT-4o)
+    └→ ... more agents
+    ↓
+Specialized Response
+</code></pre>
+<p><strong>Benefits:</strong></p>
+<ul>
+<li>Right tool for the job</li>
+<li>Better quality answers</li>
+<li>More cost effective</li>
+<li>Easy to add new capabilities</li>
+</ul>
+<hr>
+<h2>Real-World Analogy</h2>
+<p>Think of a hospital:</p>
+<p><strong>Bad approach: One doctor</strong></p>
+<ul>
+<li>One generalist doctor sees every patient</li>
+<li>Slower, less specialized care</li>
+<li>Can&#39;t be expert in everything</li>
+</ul>
+<p><strong>Good approach: Specialists</strong></p>
+<ul>
+<li>Triage nurse routes patients</li>
+<li>Cardiologist handles heart issues</li>
+<li>Orthopedist handles broken bones</li>
+<li>Each is an expert in their domain</li>
+</ul>
+<p>Your AI system works the same way!</p>
+<hr>
+<h2>Understanding the Components</h2>
+<h3>1. Agent Types (<code>app/agents/types.ts</code>)</h3>
+<pre><code class="language-typescript">export type AgentType = &#39;linkedin&#39; | &#39;rag&#39;;
+
+export interface AgentRequest {
+	type: AgentType; // Which agent is handling this
+	query: string; // Refined/summarized query
+	originalQuery: string; // What user actually said
+	messages: Message[]; // Full conversation history
+}
+
+export type AgentResponse = StreamTextResult; // Streamed response
+</code></pre>
+<p><strong>Key insight: The AgentRequest interface</strong></p>
+<p>This is your contract. Every agent receives the same structure but handles it differently:</p>
+<ul>
+<li><code>type</code>: So the agent knows what it&#39;s supposed to do</li>
+<li><code>query</code>: Refined query (selector removed fluff)</li>
+<li><code>originalQuery</code>: Maintains user&#39;s exact words</li>
+<li><code>messages</code>: For context-aware responses</li>
+</ul>
+<h3>2. Agent Config (<code>app/agents/config.ts</code>)</h3>
+<pre><code class="language-typescript">export const agentConfigs: Record&lt;AgentType, AgentConfig&gt; = {
+	linkedin: {
+		name: &#39;LinkedIn Agent&#39;,
+		description: &#39;For questions about LinkedIn, professional networking...&#39;,
+	},
+	rag: {
+		name: &#39;RAG Agent&#39;,
+		description: &#39;For questions about documentation, technical content...&#39;,
+	},
+};
+</code></pre>
+<p><strong>Why separate config?</strong></p>
+<ul>
+<li>Single source of truth</li>
+<li>Selector uses descriptions to route</li>
+<li>Easy to add new agents (just add to config)</li>
+<li>Documentation stays in sync with code</li>
+</ul>
+<h3>3. Agent Registry (<code>app/agents/registry.ts</code>)</h3>
+<pre><code class="language-typescript">type AgentExecutor = (request: AgentRequest) =&gt; Promise&lt;AgentResponse&gt;;
+
+export const agentRegistry: Record&lt;AgentType, AgentExecutor&gt; = {
+	linkedin: linkedInAgent,
+	rag: ragAgent,
+};
+</code></pre>
+<p><strong>The Registry Pattern</strong></p>
+<p>This is a common software pattern:</p>
+<ol>
+<li>Map string keys to functions</li>
+<li>Type-safe lookup</li>
+<li>Runtime routing</li>
+<li>Easy to extend</li>
+</ol>
+<p>Think of it like a phone directory - given an agent name, quickly find the function to call.</p>
+<hr>
+<h2>The Agent Selector: The Brain</h2>
+<p>Located at: <code>app/api/select-agent/route.ts</code></p>
+<p>This is the &quot;triage nurse&quot; of your system.</p>
+<h3>What It Does</h3>
+<p><strong>Input:</strong> Conversation history (last 5 messages)</p>
+<p><strong>Process:</strong></p>
+<ol>
+<li>Analyzes the conversation context</li>
+<li>Determines user intent</li>
+<li>Refines the query (removes conversational fluff)</li>
+<li>Chooses the best agent</li>
+</ol>
+<p><strong>Output:</strong> <code>{ agent: &#39;rag&#39;, query: &#39;How do I use React hooks?&#39; }</code></p>
+<h3>Why Last 5 Messages?</h3>
+<pre><code class="language-typescript">const recentMessages = messages.slice(-5);
+</code></pre>
+<p><strong>Reasoning:</strong></p>
+<ul>
+<li>Maintains conversation context</li>
+<li>Understands follow-up questions</li>
+<li>Not too much context (cost + latency)</li>
+<li>Captures recent intent shift</li>
+</ul>
+<p>Example:</p>
+<pre><code>User: &quot;Tell me about yourself&quot;
+Bot: &quot;I&#39;m a RAG assistant...&quot;
+User: &quot;What about hooks?&quot; ← Without context, unclear!
+</code></pre>
+<p>With context, selector knows &quot;hooks&quot; refers to React (from earlier messages).</p>
+<h3>The Selector Prompt</h3>
+<pre><code class="language-typescript">const systemPrompt = `You are an agent router.
+Based on the conversation history, determine which agent should handle
+the request and create a focused query.
+
+Available agents:
+- &quot;linkedin&quot;: For professional networking questions
+- &quot;rag&quot;: For technical documentation questions
+
+Respond with: { &quot;agent&quot;: &quot;rag&quot;, &quot;query&quot;: &quot;clear focused query&quot; }`;
+</code></pre>
+<p><strong>Why this works:</strong></p>
+<ul>
+<li>Clear instructions</li>
+<li>Explicit agent descriptions</li>
+<li>Structured output (JSON)</li>
+<li>Query refinement built-in</li>
+</ul>
+<hr>
+<h2>Query Refinement: Why It Matters</h2>
+<p><strong>User says:</strong> &quot;yo can you tell me like what&#39;s the deal with that state management thing you mentioned earlier?&quot;</p>
+<p><strong>Selector refines to:</strong> &quot;What is React state management?&quot;</p>
+<p><strong>Benefits:</strong></p>
+<ul>
+<li>Better embedding matching (if using RAG)</li>
+<li>Clearer intent for the agent</li>
+<li>Removes noise (&quot;yo&quot;, &quot;like&quot;, &quot;you mentioned&quot;)</li>
+<li>More precise retrieval</li>
+</ul>
+<hr>
+<h2>The Chat Route: Tying It Together</h2>
+<p>Located at: <code>app/api/chat/route.ts</code></p>
+<p>This route receives:</p>
+<pre><code class="language-typescript">{
+  messages: [...conversation],
+  agent: &#39;rag&#39;,
+  query: &#39;refined query&#39;
+}
+</code></pre>
+<p>Then:</p>
+<ol>
+<li>Gets the agent executor from registry</li>
+<li>Builds the AgentRequest</li>
+<li>Executes the agent</li>
+<li>Returns the stream</li>
+</ol>
+<p><strong>Beautiful simplicity:</strong> The route doesn&#39;t care HOW agents work, just that they follow the contract. Each agent is a black box that takes a request and returns a stream.</p>
+<hr>
+<h2>Why This Architecture?</h2>
+<h3>Separation of Concerns</h3>
+<pre><code>┌─────────────────┐
+│ Select Agent    │ ← Routing logic
+├─────────────────┤
+│ Execute Agent   │ ← Execution logic
+├─────────────────┤
+│ LinkedIn Agent  │ ← Domain logic (professional)
+├─────────────────┤
+│ RAG Agent       │ ← Domain logic (documentation)
+└─────────────────┘
+</code></pre>
+<p>Each layer has ONE job. Easy to:</p>
+<ul>
+<li>Test individually</li>
+<li>Modify without breaking others</li>
+<li>Add new agents</li>
+<li>Debug issues</li>
+</ul>
+<h3>Type Safety</h3>
+<pre><code class="language-typescript">// TypeScript prevents:
+getAgent(&#39;invalid-agent&#39;) // ❌ Type error!
+getAgent(&#39;rag&#39;)           // ✅ Works!
+
+// And ensures:
+every agent returns AgentResponse
+every agent receives AgentRequest
+</code></pre>
+<h3>Extensibility</h3>
+<p>Want to add a &quot;coding&quot; agent? Four simple steps:</p>
+<ol>
+<li>Add to types: <code>&#39;linkedin&#39; | &#39;rag&#39; | &#39;coding&#39;</code></li>
+<li>Add to config (name + description)</li>
+<li>Add to registry (map to function)</li>
+<li>Implement the agent function</li>
+</ol>
+<p>Done! The selector automatically knows about it because it reads from the config.</p>
+<hr>
+<h2>Common Patterns &amp; Best Practices</h2>
+<h3>1. Always Include Both Queries</h3>
+<p>Agents should receive BOTH the original and refined queries:</p>
+<ul>
+<li><strong>Original</strong>: Captures user&#39;s tone/style/exact words</li>
+<li><strong>Refined</strong>: Captures the core intent</li>
+<li><strong>Together</strong>: Gives complete context</li>
+</ul>
+<h3>2. Error Handling</h3>
+<p><strong>Fail fast:</strong> If configuration is missing (like API keys), throw errors immediately during initialization, not later when handling requests.</p>
+<h3>3. Streaming Responses</h3>
+<p>All agents return streams, not complete responses:</p>
+<ul>
+<li>Better UX (user sees response immediately)</li>
+<li>Lower perceived latency</li>
+<li>Can cancel long responses</li>
+<li>Industry standard for chat apps</li>
+</ul>
+<hr>
+<h2>Additional Reading</h2>
+<h3>Building Effective Agents (Anthropic)</h3>
+<p><strong>Link:</strong> <a href="https://www.anthropic.com/engineering/building-effective-agents">https://www.anthropic.com/engineering/building-effective-agents</a></p>
+<p><strong>Why Read This:</strong></p>
+<ul>
+<li>Deep dive into agentic workflows vs simple prompts</li>
+<li>Routing patterns (exactly what we&#39;re building!)</li>
+<li>Tool-calling patterns</li>
+<li>Real-world examples from Anthropic&#39;s production systems</li>
+</ul>
+<p><strong>Key Takeaways:</strong></p>
+<ul>
+<li>When to use agents vs workflows</li>
+<li>Agent orchestration patterns</li>
+<li>Common pitfalls and how to avoid them</li>
+</ul>
+<p><strong>Time:</strong> ~20 minutes</p>
+<p>This article reinforces the concepts in this lesson with production examples from Anthropic.</p>
+<hr>
+<p><strong>Coming up:</strong></p>
+<ul>
+<li>Building the LinkedIn agent with a fine-tuned model</li>
+<li>Building the RAG agent with retrieval</li>
+<li>Connecting everything to the UI</li>
+</ul>
+
+</body>
+</html>
