@@ -4,30 +4,28 @@ Use yarn as package manager.
 
 This repository has two main student-facing branches:
 
-## `student-starter` (Main Teaching Branch)
-
-**Current branch** - Clean, production-ready code with all implementations complete.
+## `student-starter`
 
 ### Purpose:
 
-- Reference implementation for students
-- All TODOs removed
-- Clean, well-structured code
-- Ready to run and test
+-   Reference implementation for students
+-   All TODOs removed
+-   Clean, well-structured code
+-   Ready to run and test
 
 ### Key Files:
 
-- `app/agents/linkedin.ts` - Complete LinkedIn agent implementation
-- `app/agents/rag.ts` - Complete RAG agent with reranking
-- `app/api/select-agent/route.ts` - Complete selector with structured outputs
-- `app/agents/__tests__/selector.test.ts` - Full test suite
+-   `app/agents/linkedin.ts` - Complete LinkedIn agent implementation
+-   `app/agents/rag.ts` - Complete RAG agent with reranking
+-   `app/api/select-agent/route.ts` - Complete selector with structured outputs
+-   `app/agents/__tests__/selector.test.ts` - Full test suite
 
 ### Use This Branch:
 
-- As reference when students get stuck
-- For demos and live coding
-- To verify expected behavior
-- To test the complete system
+-   As reference when students get stuck
+-   For demos and live coding
+-   To verify expected behavior
+-   To test the complete system
 
 ---
 
@@ -37,24 +35,24 @@ Code with implementations removed and detailed TODOs for students to complete.
 
 ### Purpose:
 
-- Hands-on learning exercises
-- Step-by-step guidance via TODO comments
-- Students implement features themselves
-- Follows curriculum modules in `curriculum/updates/`
+-   Hands-on learning exercises
+-   Step-by-step guidance via TODO comments
+-   Students implement features themselves
+-   Follows curriculum modules in `curriculum/updates/`
 
 ### Key Files:
 
-- Same files as student-starter, but with:
-    - Implementations removed
-    - Detailed TODO comments with step-by-step instructions
-    - `throw new Error()` placeholders
-    - All imports and types intact
+-   Same files as student-starter, but with:
+    -   Implementations removed
+    -   Detailed TODO comments with step-by-step instructions
+    -   `throw new Error()` placeholders
+    -   All imports and types intact
 
 ### Use This Branch:
 
-- For students to work through exercises
-- Pair with curriculum in `curriculum/updates/`
-- Students can compare their work to `student-starter`
+-   For students to work through exercises
+-   Pair with curriculum in `curriculum/updates/`
+-   Students can compare their work to `student-starter`
 
 ---
 
@@ -100,10 +98,10 @@ yarn test:chunking    # Text chunking tests
 
 ### Test Setup:
 
-- Jest configured for TypeScript
-- Environment variables loaded from `.env` or `.env.local`
-- Tests call API handlers directly (no server needed)
-- ~15 second runtime for selector tests
+-   Jest configured for TypeScript
+-   Environment variables loaded from `.env` or `.env.local`
+-   Tests call API handlers directly (no server needed)
+-   ~15 second runtime for selector tests
 
 ---
 
