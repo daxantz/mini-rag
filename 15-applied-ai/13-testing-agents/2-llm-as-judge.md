@@ -226,11 +226,22 @@ Provide a score and detailed reasoning.`,
 
 ---
 
-## Running LLM as Judge Tests
+## Your Challenge: Create the LLM as Judge Test
+
+Now it's your turn to implement this test in your codebase.
+
+### Step 1: Create the Test File
+
+Create a new file at `app/agents/__tests__/llm-as-judge.test.ts` and implement the complete test using the pattern shown above.
+
+### Step 2: Run Your Test
 
 ```bash
-# Run the LLM as Judge test
-yarn test llm-as-judge
+# Run the specific test
+npx jest llm-as-judge
+
+# Or run all tests
+yarn test
 
 # Warning: Takes 30-60 seconds due to multiple LLM calls
 ```
@@ -456,9 +467,10 @@ LLM as Judge isn't perfect:
 
 ## Your Turn
 
-**Run the LLM as Judge test:**
+**After building your test, run it:**
 ```bash
-yarn test llm-as-judge
+npx jest llm-as-judge
+# Or run all tests: yarn test
 ```
 
 **Experiment:**
@@ -518,13 +530,13 @@ Next up: **Agent Frameworks** where you'll learn about LangGraph for orchestrati
 ## Quick Reference
 
 ```bash
-# Run LLM as Judge tests
-yarn test llm-as-judge
+# Run your LLM as Judge test (after creating it)
+npx jest llm-as-judge
 
 # Run all tests
 yarn test
 
 # Run with verbose output
-yarn test llm-as-judge --verbose
+npx jest llm-as-judge --verbose
 ```
 

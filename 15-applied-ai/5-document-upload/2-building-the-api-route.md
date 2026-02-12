@@ -421,15 +421,13 @@ You've built the upload pipeline - documents are now in Pinecone as searchable v
 
 **But here's the thing:** Right now you can only upload. You can't ask questions yet.
 
-In the next module, you'll build the query side - the part that lets you:
+Next, you'll build the query side - the part that lets you:
 
 - Ask "Tell me about Anthropic"
 - Ask "How do I use the Pinecone TypeScript client?"
 - Ask "What are common pitfalls?"
 
 And get answers based on YOUR knowledge base, not hallucinations!
-
-**Next up:** Module 5.3 - Querying Documents
 
 This is where the full request/response cycle comes alive and RAG starts to feel like magic.
 
@@ -457,15 +455,94 @@ Watch this guide to building the API route:
 
 ## Challenge Solution
 
-**Reference Implementation:** Check `app/api/upload-text/route.ts` in your codebase.
+Here's the complete implementation for `app/api/upload-document/route.ts`:
 
-The complete solution follows the same pattern as the upload-text route, with these key differences:
+```typescript
+import { NextRequest, NextResponse } from 'next/server';
+import { DataProcessor } from '@/app/libs/dataProcessor';
+import { openaiClient } from '@/app/libs/openai/openai';
+import { pineconeClient } from '@/app/libs/pinecone';
+import { z } from 'zod';
 
-- Uses `DataProcessor.processUrls()` instead of `chunkText()`
-- Processes URLs instead of raw text input
-- Same embedding generation and Pinecone upload logic
+const uploadDocumentSchema = z.object({
+	urls: z.array(z.string().url()).min(1),
+});
 
-Study the upload-text route to see the complete implementation pattern for generating embeddings, formatting vectors, and uploading with proper error handling.
+export async function POST(req: NextRequest) {
+	try {
+		const body = await req.json();
+		const parsed = uploadDocumentSchema.parse(body);
+		const { urls } = parsed;
+
+		// Step 1: Scrape and chunk the content
+		const processor = new DataProcessor();
+		const chunks = await processor.processUrls(urls);
+
+		if (chunks.length === 0) {
+			return NextResponse.json(
+				{ error: 'No content found to process' },
+				{ status: 400 }
+			);
+		}
+
+		// Step 2: Generate embeddings and upload to Pinecone
+		const index = pineconeClient.Index(process.env.PINECONE_INDEX!);
+		const batchSize = 100;
+		let successCount = 0;
+
+		for (let i = 0; i < chunks.length; i += batchSize) {
+			const batch = chunks.slice(i, i + batchSize);
+
+			// Generate embeddings
+			const embeddingResponse = await openaiClient.embeddings.create({
+				model: 'text-embedding-3-small',
+				input: batch.map((chunk) => chunk.content),
+			});
+
+			// Prepare vectors for Pinecone
+			const vectors = batch.map((chunk, idx) => ({
+				id: `${chunk.metadata.url}-${chunk.metadata.chunkIndex}`,
+				values: embeddingResponse.data[idx].embedding,
+				metadata: {
+					text: chunk.content,
+					url: chunk.metadata.url || '',
+					title: chunk.metadata.title || '',
+					chunkIndex: chunk.metadata.chunkIndex || 0,
+					totalChunks: chunk.metadata.totalChunks || 0,
+				},
+			}));
+
+			// Upload to Pinecone
+			await index.upsert(vectors);
+			successCount += batch.length;
+		}
+
+		return NextResponse.json({
+			success: true,
+			chunksProcessed: chunks.length,
+			vectorsUploaded: successCount,
+		});
+	} catch (error) {
+		console.error('Error uploading documents:', error);
+		return NextResponse.json(
+			{ error: 'Failed to upload documents' },
+			{ status: 500 }
+		);
+	}
+}
+```
+
+**Key implementation points:**
+
+- **Step 1:** Parse and validate URLs using Zod schema
+- **Step 2:** Use DataProcessor to scrape and chunk URLs
+- **Step 3:** Check for empty chunks and return error if none
+- **Step 4:** Get Pinecone index from environment variable
+- **Step 5:** Process chunks in batches of 100
+- **Step 6:** Generate embeddings for each batch using OpenAI
+- **Step 7:** Map chunks to Pinecone vector format with metadata
+- **Step 8:** Upload vectors to Pinecone using upsert
+- **Step 9:** Return success response with counts
 
 ---
 
@@ -482,4 +559,4 @@ You now have a complete document ingestion pipeline! This is the "write" side of
 - ✅ Proper metadata tracking
 
 **What's next:**
-In the next module, you'll build the "read" side - querying Pinecone to answer questions about your knowledge base. This is where RAG comes alive!
+You'll build the "read" side - querying Pinecone to answer questions about your knowledge base. This is where RAG comes alive!

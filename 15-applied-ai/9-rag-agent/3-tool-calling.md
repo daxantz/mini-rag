@@ -7,6 +7,7 @@ Now that you have a working RAG agent with re-ranking, let's explore a powerful 
 ## What You'll Learn
 
 This module covers:
+
 - The difference between tools and workflows
 - When to use tool-calling vs direct workflows
 - How to implement tools with the AI SDK
@@ -25,19 +26,21 @@ User Query → Embedding → Vector Search → Re-rank → Generate Response
 ```
 
 **Characteristics:**
+
 - Predictable and deterministic
 - Always retrieves context, even if not needed
 - No decision-making by the AI
 - Lower cost per request
 
 **Example:**
+
 ```typescript
 export async function ragAgent(request: AgentRequest) {
-  // Always runs these steps
-  const embedding = await generateEmbedding(request.query);
-  const results = await searchVectorDB(embedding);
-  const reranked = await rerank(results);
-  return streamText({ context: reranked });
+	// Always runs these steps
+	const embedding = await generateEmbedding(request.query);
+	const results = await searchVectorDB(embedding);
+	const reranked = await rerank(results);
+	return streamText({ context: reranked });
 }
 ```
 
@@ -54,27 +57,29 @@ User Query → AI Decides → [Use Tool] OR [Answer Directly]
 ```
 
 **Characteristics:**
+
 - AI decides when to retrieve context
 - Can skip retrieval for simple queries
 - More flexible and intelligent
 - Higher cost per request (extra AI decision step)
 
 **Example:**
+
 ```typescript
 export async function ragAgent(request: AgentRequest) {
-  return streamText({
-    model: openai('gpt-4o'),
-    tools: {
-      generate_linkedin_post: tool({
-        // AI calls this ONLY when needed
-        execute: async ({ query }) => {
-          const embedding = await generateEmbedding(query);
-          const results = await searchVectorDB(embedding);
-          return rerank(results);
-        }
-      })
-    }
-  });
+	return streamText({
+		model: openai('gpt-4o'),
+		tools: {
+			generate_linkedin_post: tool({
+				// AI calls this ONLY when needed
+				execute: async ({ query }) => {
+					const embedding = await generateEmbedding(query);
+					const results = await searchVectorDB(embedding);
+					return rerank(results);
+				},
+			}),
+		},
+	});
 }
 ```
 
@@ -90,6 +95,7 @@ export async function ragAgent(request: AgentRequest) {
 - **Single-purpose agents**: E.g., "Always search docs and answer"
 
 **Example Use Cases:**
+
 - Customer support bot (always search knowledge base)
 - Documentation Q&A (always retrieve relevant docs)
 - FAQ chatbot (always match against FAQ database)
@@ -104,6 +110,7 @@ export async function ragAgent(request: AgentRequest) {
 - **Complex decision-making**: When to search, what to search, how to combine results
 
 **Example Use Cases:**
+
 - Content creation agent (might search examples, or create from scratch)
 - Research assistant (decides which databases to query)
 - Code assistant (might search docs, or answer from training)
@@ -125,69 +132,69 @@ import { cohereClient } from '../libs/cohere';
 import { z } from 'zod';
 
 export async function ragAgent(request: AgentRequest): Promise<AgentResponse> {
-    const { query } = request;
+	const { query } = request;
 
-    return streamText({
-        model: openai('gpt-4o'),
-        toolChoice: 'auto', // Let AI decide when to use tools
-        stopWhen: stepCountIs(15), // Prevent infinite loops
-        tools: {
-            generate_linkedin_post: tool({
-                description: 'Generate a LinkedIn post based on a user query',
-                inputSchema: z.object({
-                    query: z.string(),
-                }),
-                execute: async ({ query }) => {
-                    // Step 1: Generate embedding
-                    const embedding = await openaiClient.embeddings.create({
-                        model: 'text-embedding-3-small',
-                        dimensions: 512,
-                        input: query,
-                    });
+	return streamText({
+		model: openai('gpt-4o'),
+		toolChoice: 'auto', // Let AI decide when to use tools
+		stopWhen: stepCountIs(15), // Prevent infinite loops
+		tools: {
+			generate_linkedin_post: tool({
+				description: 'Generate a LinkedIn post based on a user query',
+				inputSchema: z.object({
+					query: z.string(),
+				}),
+				execute: async ({ query }) => {
+					// Step 1: Generate embedding
+					const embedding = await openaiClient.embeddings.create({
+						model: 'text-embedding-3-small',
+						dimensions: 512,
+						input: query,
+					});
 
-                    // Step 2: Search multiple collections
-                    const linkedInPosts = await qdrantClient.search(
-                        'linkedin',
-                        {
-                            vector: embedding.data[0].embedding,
-                            limit: 10,
-                            with_payload: true,
-                        },
-                    );
+					// Step 2: Search multiple collections
+					const linkedInPosts = await qdrantClient.search(
+						'linkedin',
+						{
+							vector: embedding.data[0].embedding,
+							limit: 10,
+							with_payload: true,
+						},
+					);
 
-                    const articles = await qdrantClient.search('articles', {
-                        vector: embedding.data[0].embedding,
-                        limit: 10,
-                        with_payload: true,
-                    });
+					const articles = await qdrantClient.search('articles', {
+						vector: embedding.data[0].embedding,
+						limit: 10,
+						with_payload: true,
+					});
 
-                    // Step 3: Re-rank all results together
-                    const rerankedDocuments = await cohereClient.rerank({
-                        model: 'rerank-english-v3.0',
-                        query: query,
-                        documents: [
-                            ...linkedInPosts.map(
-                                (post) => post.payload?.content as string,
-                            ),
-                            ...articles.map(
-                                (article) => article.payload?.content as string,
-                            ),
-                        ],
-                        topN: 10,
-                        returnDocuments: true,
-                    });
+					// Step 3: Re-rank all results together
+					const rerankedDocuments = await cohereClient.rerank({
+						model: 'rerank-english-v3.0',
+						query: query,
+						documents: [
+							...linkedInPosts.map(
+								(post) => post.payload?.content as string,
+							),
+							...articles.map(
+								(article) => article.payload?.content as string,
+							),
+						],
+						topN: 10,
+						returnDocuments: true,
+					});
 
-                    // Return context to the AI
-                    return rerankedDocuments.results.map(
-                        (result) => result.document?.text,
-                    );
-                },
-            }),
-        },
-        messages: [
-            {
-                role: 'system',
-                content: `You are a LinkedIn content creator. Your task is to generate an engaging LinkedIn post based on user queries.
+					// Return context to the AI
+					return rerankedDocuments.results.map(
+						(result) => result.document?.text,
+					);
+				},
+			}),
+		},
+		messages: [
+			{
+				role: 'system',
+				content: `You are a LinkedIn content creator. Your task is to generate an engaging LinkedIn post based on user queries.
 
 ## Content Creation Process
 **IMPORTANT: For ANY content creation request, you MUST use the tool BEFORE writing:**
@@ -202,14 +209,14 @@ After receiving the context, write a compelling LinkedIn post that:
 - Is formatted appropriately with line breaks and emojis where relevant
 
 Never use emojis or hashtags in the post.`,
-            },
-            {
-                role: 'user',
-                content: query,
-            },
-        ],
-        temperature: 0.8,
-    });
+			},
+			{
+				role: 'user',
+				content: query,
+			},
+		],
+		temperature: 0.8,
+	});
 }
 ```
 
@@ -221,19 +228,20 @@ Never use emojis or hashtags in the post.`,
 
 ```typescript
 tools: {
-    generate_linkedin_post: tool({
-        description: 'Generate a LinkedIn post based on a user query',
-        inputSchema: z.object({
-            query: z.string(),
-        }),
-        execute: async ({ query }) => {
-            // Tool implementation
-        }
-    })
+	generate_linkedin_post: tool({
+		description: 'Generate a LinkedIn post based on a user query',
+		inputSchema: z.object({
+			query: z.string(),
+		}),
+		execute: async ({ query }) => {
+			// Tool implementation
+		},
+	});
 }
 ```
 
 **Key Components:**
+
 - `description`: Tells the AI when to use this tool
 - `inputSchema`: Validates tool inputs using Zod
 - `execute`: The function that runs when AI calls the tool
@@ -243,11 +251,11 @@ tools: {
 ### 2. Tool Choice Strategies
 
 ```typescript
-toolChoice: 'auto'  // AI decides when to use tools
+toolChoice: 'auto'; // AI decides when to use tools
 // vs
-toolChoice: 'required'  // AI must use a tool
+toolChoice: 'required'; // AI must use a tool
 // vs
-toolChoice: 'none'  // AI cannot use tools
+toolChoice: 'none'; // AI cannot use tools
 ```
 
 **Best Practice:** Use `'auto'` to let the AI make intelligent decisions.
@@ -257,7 +265,7 @@ toolChoice: 'none'  // AI cannot use tools
 ### 3. Safety Mechanisms
 
 ```typescript
-stopWhen: stepCountIs(15)  // Prevent infinite tool-calling loops
+stopWhen: stepCountIs(15); // Prevent infinite tool-calling loops
 ```
 
 Without this, an agent might get stuck calling tools repeatedly. Always set a reasonable limit.
@@ -296,6 +304,7 @@ Let's see how each approach handles different queries:
 ### Query 1: "Write a post about microservices"
 
 **Workflow Approach:**
+
 ```
 ✅ Retrieves context (needed)
 ✅ Generates post with examples
@@ -303,6 +312,7 @@ Cost: 1 embedding + 1 search + 1 rerank + 1 generation
 ```
 
 **Tool-Calling Approach:**
+
 ```
 ✅ AI decides to call tool
 ✅ Retrieves context (needed)
@@ -317,6 +327,7 @@ Cost: 1 decision + 1 embedding + 1 search + 1 rerank + 1 generation
 ### Query 2: "What did I ask you before?"
 
 **Workflow Approach:**
+
 ```
 ❌ Retrieves context (NOT needed - wasted cost)
 ❌ Searches for "what did I ask" in vector DB
@@ -325,6 +336,7 @@ Cost: 1 embedding + 1 search + 1 rerank + 1 generation
 ```
 
 **Tool-Calling Approach:**
+
 ```
 ✅ AI decides NOT to call tool
 ✅ Answers directly from conversation history
@@ -351,39 +363,39 @@ Modify your RAG agent to use tool-calling instead of a fixed workflow.
 
 ```typescript
 export async function ragAgent(request: AgentRequest): Promise<AgentResponse> {
-    return streamText({
-        model: openai('gpt-4o'),
-        toolChoice: 'auto',
-        stopWhen: stepCountIs(10),
-        tools: {
-            search_documentation: tool({
-                description: 'Search documentation for relevant context',
-                inputSchema: z.object({
-                    query: z.string(),
-                }),
-                execute: async ({ query }) => {
-                    // TODO: Implement your RAG workflow here
-                    // 1. Generate embedding
-                    // 2. Search vector DB
-                    // 3. Re-rank results
-                    // 4. Return context
-                },
-            }),
-        },
-        messages: [
-            {
-                role: 'system',
-                content: `You are a helpful assistant.
+	return streamText({
+		model: openai('gpt-4o'),
+		toolChoice: 'auto',
+		stopWhen: stepCountIs(10),
+		tools: {
+			search_documentation: tool({
+				description: 'Search documentation for relevant context',
+				inputSchema: z.object({
+					query: z.string(),
+				}),
+				execute: async ({ query }) => {
+					// TODO: Implement your RAG workflow here
+					// 1. Generate embedding
+					// 2. Search vector DB
+					// 3. Re-rank results
+					// 4. Return context
+				},
+			}),
+		},
+		messages: [
+			{
+				role: 'system',
+				content: `You are a helpful assistant.
 
 When the user asks about technical topics, use the search_documentation tool.
 For general conversation, answer directly without using tools.`,
-            },
-            {
-                role: 'user',
-                content: request.query,
-            },
-        ],
-    });
+			},
+			{
+				role: 'user',
+				content: request.query,
+			},
+		],
+	});
 }
 ```
 
@@ -394,6 +406,7 @@ For general conversation, answer directly without using tools.`,
 ### Test Case 1: Should Use Tool
 
 **Request:**
+
 - Method: POST
 - URL: `http://localhost:3000/api/chat`
 - Headers: `Content-Type: application/json`
@@ -401,9 +414,9 @@ For general conversation, answer directly without using tools.`,
 
 ```json
 {
-  "messages": [{"role": "user", "content": "How do I use React hooks?"}],
-  "agent": "rag",
-  "query": "React hooks documentation"
+	"messages": [{ "role": "user", "content": "How do I use React hooks?" }],
+	"agent": "rag",
+	"query": "React hooks documentation"
 }
 ```
 
@@ -414,6 +427,7 @@ For general conversation, answer directly without using tools.`,
 ### Test Case 2: Should NOT Use Tool
 
 **Request:**
+
 - Method: POST
 - URL: `http://localhost:3000/api/chat`
 - Headers: `Content-Type: application/json`
@@ -421,8 +435,8 @@ For general conversation, answer directly without using tools.`,
 
 ```json
 {
-  "messages": [{"role": "user", "content": "Thanks!"}],
-  "agent": "rag"
+	"messages": [{ "role": "user", "content": "Thanks!" }],
+	"agent": "rag"
 }
 ```
 
@@ -436,14 +450,14 @@ Add logging to see when tools are called:
 
 ```typescript
 execute: async ({ query }) => {
-    console.log('🔧 Tool called with query:', query);
+	console.log('🔧 Tool called with query:', query);
 
-    const results = await performRAG(query);
+	const results = await performRAG(query);
 
-    console.log('📊 Retrieved context:', results.length, 'documents');
+	console.log('📊 Retrieved context:', results.length, 'documents');
 
-    return results;
-}
+	return results;
+};
 ```
 
 You should see tool calls logged only for queries that need context retrieval.
@@ -511,13 +525,3 @@ The AI will choose the most appropriate tool (or combination of tools) based on 
 ✅ Tool choice strategies and safety mechanisms
 ✅ Cost implications of intelligent tool selection
 ✅ How to test and debug tool-calling agents
-
----
-
-## What's Next?
-
-Consider exploring:
-- **Multi-step tool use**: Agent calls multiple tools in sequence
-- **Tool chaining**: Output of one tool feeds into another
-- **Conditional tools**: Different tools for different user types
-- **Observability**: Tracking tool usage and performance (next module!)

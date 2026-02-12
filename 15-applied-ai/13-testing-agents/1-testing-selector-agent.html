@@ -3,7 +3,7 @@
 <hr style="border: none; border-top: 2px solid #eee; margin: 30px 0;">
 <h2 style="margin-top: 24px; margin-bottom: 12px; font-size: 28px; font-weight: bold;">Video Walkthrough</h2>
 <p style="margin: 12px 0; line-height: 1.6;">Watch this guide to testing and the course outro:</p>
-<div style="position: relative; padding-bottom: 56.25%; height: 0;"><iframe src="https://web.descript.com/4e24aa99-848b-45ff-b17c-e425a4306285/2df08" frameborder="0" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen="" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;; max-width: 100%; margin: 20px 0;"></iframe></div>
+<div style="position: relative; padding-bottom: 56.25%; height: 0;"><iframe src="https://share.descript.com/embed/bLBxAMMBx6D" width="640" height="360" frameborder="0" allowfullscreen="" style="max-width: 100%; margin: 20px 0;"></iframe></div>
 
 <hr style="border: none; border-top: 2px solid #eee; margin: 30px 0;">
 <h2 style="margin-top: 24px; margin-bottom: 12px; font-size: 28px; font-weight: bold;">What You'll Learn</h2>
@@ -62,9 +62,9 @@ selectAgent("How do hooks work?")
 
 // Create a mock request
 const request = {
-  json: async () =&gt; ({
-    messages: [{ role: 'user', content: query }],
-  }),
+	json: async () =&gt; ({
+		messages: [{ role: 'user', content: query }],
+	}),
 } as NextRequest;
 
 // Call the handler directly
@@ -73,12 +73,12 @@ const result = await response.json();
 </code></pre>
 <h4 style="margin-top: 24px; margin-bottom: 12px; font-size: 20px; font-weight: bold;">1. LinkedIn Agent Routing</h4>
 <pre style="background-color: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; margin: 20px 0;"><code class="language-typescript" style="background-color: transparent; padding: 0;">it('should route LinkedIn post creation to linkedin agent', async () =&gt; {
-  const result = await selectAgent(
-    'Write a LinkedIn post about learning TypeScript'
-  );
+	const result = await selectAgent(
+		'Write a LinkedIn post about learning TypeScript',
+	);
 
-  expect(result.agent).toBe('linkedin');
-  expect(result.query).toBeTruthy();
+	expect(result.agent).toBe('linkedin');
+	expect(result.query).toBeTruthy();
 });
 </code></pre>
 <p style="margin: 12px 0; line-height: 1.6;"><strong style="font-weight: bold;">What we're checking:</strong></p>
@@ -88,10 +88,10 @@ const result = await response.json();
 </ul>
 <h4 style="margin-top: 24px; margin-bottom: 12px; font-size: 20px; font-weight: bold;">2. RAG Agent Routing</h4>
 <pre style="background-color: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; margin: 20px 0;"><code class="language-typescript" style="background-color: transparent; padding: 0;">it('should route technical documentation questions to rag agent', async () =&gt; {
-  const result = await selectAgent('How do React hooks work?');
+	const result = await selectAgent('How do React hooks work?');
 
-  expect(result.agent).toBe('rag');
-  expect(result.query).toBeTruthy();
+	expect(result.agent).toBe('rag');
+	expect(result.query).toBeTruthy();
 });
 </code></pre>
 <p style="margin: 12px 0; line-height: 1.6;"><strong style="font-weight: bold;">What we're checking:</strong></p>
@@ -101,11 +101,11 @@ const result = await response.json();
 </ul>
 <h4 style="margin-top: 24px; margin-bottom: 12px; font-size: 20px; font-weight: bold;">3. Response Structure</h4>
 <pre style="background-color: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; margin: 20px 0;"><code class="language-typescript" style="background-color: transparent; padding: 0;">it('should return valid response structure', async () =&gt; {
-  const result = await selectAgent('Any question here');
+	const result = await selectAgent('Any question here');
 
-  expect(result).toHaveProperty('agent');
-  expect(result).toHaveProperty('query');
-  expect(['linkedin', 'rag']).toContain(result.agent);
+	expect(result).toHaveProperty('agent');
+	expect(result).toHaveProperty('query');
+	expect(['linkedin', 'rag']).toContain(result.agent);
 });
 </code></pre>
 <p style="margin: 12px 0; line-height: 1.6;"><strong style="font-weight: bold;">What we're checking:</strong></p>
@@ -115,9 +115,9 @@ const result = await response.json();
 </ul>
 <h4 style="margin-top: 24px; margin-bottom: 12px; font-size: 20px; font-weight: bold;">4. Edge Cases</h4>
 <pre style="background-color: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; margin: 20px 0;"><code class="language-typescript" style="background-color: transparent; padding: 0;">it('should handle very short queries', async () =&gt; {
-  const result = await selectAgent('Help');
+	const result = await selectAgent('Help');
 
-  expect(['linkedin', 'rag']).toContain(result.agent);
+	expect(['linkedin', 'rag']).toContain(result.agent);
 });
 </code></pre>
 <p style="margin: 12px 0; line-height: 1.6;"><strong style="font-weight: bold;">What we're checking:</strong></p>
@@ -190,7 +190,7 @@ Received: 'rag'
 <h2 style="margin-top: 24px; margin-bottom: 12px; font-size: 28px; font-weight: bold;">Understanding Non-Determinism</h2>
 <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 24px; font-weight: bold;">Why Tests Might Fail Occasionally</h3>
 <pre style="background-color: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; margin: 20px 0;"><code class="language-typescript" style="background-color: transparent; padding: 0;">// This query is ambiguous:
-"Tell me about JavaScript"
+'Tell me about JavaScript';
 
 // Could route to:
 // - 'rag' → technical documentation

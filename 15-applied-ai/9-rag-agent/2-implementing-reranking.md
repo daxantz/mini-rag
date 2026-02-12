@@ -371,7 +371,3 @@ After re-ranking:
 **Time:** ~15 minutes
 
 **Note:** This article uses Qdrant examples, but the concepts apply directly to Pinecone (which we use). The re-ranking principles are universal across vector databases.
-
----
-
-**Next:** Learn about tool-calling vs workflow patterns in [Module 9.3: Tool-Calling](./3-tool-calling.md)

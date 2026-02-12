@@ -217,4 +217,4 @@ Answer using the context. If insufficient, say so.`;
 
 ## What's Next?
 
-In the next module, you'll learn about **re-ranking** - a technique to improve retrieval quality by intelligently filtering results.
+Next, you'll learn about **re-ranking** - a technique to improve retrieval quality by intelligently filtering results.

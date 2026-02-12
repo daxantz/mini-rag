@@ -24,11 +24,11 @@
 </ul>
 <p style="margin: 12px 0; line-height: 1.6;"><strong style="font-weight: bold;">Example:</strong></p>
 <pre style="background-color: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; margin: 20px 0;"><code class="language-typescript" style="background-color: transparent; padding: 0;">export async function ragAgent(request: AgentRequest) {
-  // Always runs these steps
-  const embedding = await generateEmbedding(request.query);
-  const results = await searchVectorDB(embedding);
-  const reranked = await rerank(results);
-  return streamText({ context: reranked });
+	// Always runs these steps
+	const embedding = await generateEmbedding(request.query);
+	const results = await searchVectorDB(embedding);
+	const reranked = await rerank(results);
+	return streamText({ context: reranked });
 }
 </code></pre>
 <hr style="border: none; border-top: 2px solid #eee; margin: 30px 0;">
@@ -47,19 +47,19 @@
 </ul>
 <p style="margin: 12px 0; line-height: 1.6;"><strong style="font-weight: bold;">Example:</strong></p>
 <pre style="background-color: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; margin: 20px 0;"><code class="language-typescript" style="background-color: transparent; padding: 0;">export async function ragAgent(request: AgentRequest) {
-  return streamText({
-    model: openai('gpt-4o'),
-    tools: {
-      generate_linkedin_post: tool({
-        // AI calls this ONLY when needed
-        execute: async ({ query }) =&gt; {
-          const embedding = await generateEmbedding(query);
-          const results = await searchVectorDB(embedding);
-          return rerank(results);
-        }
-      })
-    }
-  });
+	return streamText({
+		model: openai('gpt-4o'),
+		tools: {
+			generate_linkedin_post: tool({
+				// AI calls this ONLY when needed
+				execute: async ({ query }) =&gt; {
+					const embedding = await generateEmbedding(query);
+					const results = await searchVectorDB(embedding);
+					return rerank(results);
+				},
+			}),
+		},
+	});
 }
 </code></pre>
 <hr style="border: none; border-top: 2px solid #eee; margin: 30px 0;">
@@ -104,69 +104,69 @@ import { cohereClient } from '../libs/cohere';
 import { z } from 'zod';
 
 export async function ragAgent(request: AgentRequest): Promise&lt;AgentResponse&gt; {
-    const { query } = request;
+	const { query } = request;
 
-    return streamText({
-        model: openai('gpt-4o'),
-        toolChoice: 'auto', // Let AI decide when to use tools
-        stopWhen: stepCountIs(15), // Prevent infinite loops
-        tools: {
-            generate_linkedin_post: tool({
-                description: 'Generate a LinkedIn post based on a user query',
-                inputSchema: z.object({
-                    query: z.string(),
-                }),
-                execute: async ({ query }) =&gt; {
-                    // Step 1: Generate embedding
-                    const embedding = await openaiClient.embeddings.create({
-                        model: 'text-embedding-3-small',
-                        dimensions: 512,
-                        input: query,
-                    });
+	return streamText({
+		model: openai('gpt-4o'),
+		toolChoice: 'auto', // Let AI decide when to use tools
+		stopWhen: stepCountIs(15), // Prevent infinite loops
+		tools: {
+			generate_linkedin_post: tool({
+				description: 'Generate a LinkedIn post based on a user query',
+				inputSchema: z.object({
+					query: z.string(),
+				}),
+				execute: async ({ query }) =&gt; {
+					// Step 1: Generate embedding
+					const embedding = await openaiClient.embeddings.create({
+						model: 'text-embedding-3-small',
+						dimensions: 512,
+						input: query,
+					});
 
-                    // Step 2: Search multiple collections
-                    const linkedInPosts = await qdrantClient.search(
-                        'linkedin',
-                        {
-                            vector: embedding.data[0].embedding,
-                            limit: 10,
-                            with_payload: true,
-                        },
-                    );
+					// Step 2: Search multiple collections
+					const linkedInPosts = await qdrantClient.search(
+						'linkedin',
+						{
+							vector: embedding.data[0].embedding,
+							limit: 10,
+							with_payload: true,
+						},
+					);
 
-                    const articles = await qdrantClient.search('articles', {
-                        vector: embedding.data[0].embedding,
-                        limit: 10,
-                        with_payload: true,
-                    });
+					const articles = await qdrantClient.search('articles', {
+						vector: embedding.data[0].embedding,
+						limit: 10,
+						with_payload: true,
+					});
 
-                    // Step 3: Re-rank all results together
-                    const rerankedDocuments = await cohereClient.rerank({
-                        model: 'rerank-english-v3.0',
-                        query: query,
-                        documents: [
-                            ...linkedInPosts.map(
-                                (post) =&gt; post.payload?.content as string,
-                            ),
-                            ...articles.map(
-                                (article) =&gt; article.payload?.content as string,
-                            ),
-                        ],
-                        topN: 10,
-                        returnDocuments: true,
-                    });
+					// Step 3: Re-rank all results together
+					const rerankedDocuments = await cohereClient.rerank({
+						model: 'rerank-english-v3.0',
+						query: query,
+						documents: [
+							...linkedInPosts.map(
+								(post) =&gt; post.payload?.content as string,
+							),
+							...articles.map(
+								(article) =&gt; article.payload?.content as string,
+							),
+						],
+						topN: 10,
+						returnDocuments: true,
+					});
 
-                    // Return context to the AI
-                    return rerankedDocuments.results.map(
-                        (result) =&gt; result.document?.text,
-                    );
-                },
-            }),
-        },
-        messages: [
-            {
-                role: 'system',
-                content: `You are a LinkedIn content creator. Your task is to generate an engaging LinkedIn post based on user queries.
+					// Return context to the AI
+					return rerankedDocuments.results.map(
+						(result) =&gt; result.document?.text,
+					);
+				},
+			}),
+		},
+		messages: [
+			{
+				role: 'system',
+				content: `You are a LinkedIn content creator. Your task is to generate an engaging LinkedIn post based on user queries.
 
 ## Content Creation Process
 **IMPORTANT: For ANY content creation request, you MUST use the tool BEFORE writing:**
@@ -181,29 +181,29 @@ After receiving the context, write a compelling LinkedIn post that:
 - Is formatted appropriately with line breaks and emojis where relevant
 
 Never use emojis or hashtags in the post.`,
-            },
-            {
-                role: 'user',
-                content: query,
-            },
-        ],
-        temperature: 0.8,
-    });
+			},
+			{
+				role: 'user',
+				content: query,
+			},
+		],
+		temperature: 0.8,
+	});
 }
 </code></pre>
 <hr style="border: none; border-top: 2px solid #eee; margin: 30px 0;">
 <h2 style="margin-top: 24px; margin-bottom: 12px; font-size: 28px; font-weight: bold;">Breaking Down the Tool Definition</h2>
 <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 24px; font-weight: bold;">1. Tool Configuration</h3>
 <pre style="background-color: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; margin: 20px 0;"><code class="language-typescript" style="background-color: transparent; padding: 0;">tools: {
-    generate_linkedin_post: tool({
-        description: 'Generate a LinkedIn post based on a user query',
-        inputSchema: z.object({
-            query: z.string(),
-        }),
-        execute: async ({ query }) =&gt; {
-            // Tool implementation
-        }
-    })
+	generate_linkedin_post: tool({
+		description: 'Generate a LinkedIn post based on a user query',
+		inputSchema: z.object({
+			query: z.string(),
+		}),
+		execute: async ({ query }) =&gt; {
+			// Tool implementation
+		},
+	});
 }
 </code></pre>
 <p style="margin: 12px 0; line-height: 1.6;"><strong style="font-weight: bold;">Key Components:</strong></p>
@@ -214,16 +214,16 @@ Never use emojis or hashtags in the post.`,
 </ul>
 <hr style="border: none; border-top: 2px solid #eee; margin: 30px 0;">
 <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 24px; font-weight: bold;">2. Tool Choice Strategies</h3>
-<pre style="background-color: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; margin: 20px 0;"><code class="language-typescript" style="background-color: transparent; padding: 0;">toolChoice: 'auto'  // AI decides when to use tools
+<pre style="background-color: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; margin: 20px 0;"><code class="language-typescript" style="background-color: transparent; padding: 0;">toolChoice: 'auto'; // AI decides when to use tools
 // vs
-toolChoice: 'required'  // AI must use a tool
+toolChoice: 'required'; // AI must use a tool
 // vs
-toolChoice: 'none'  // AI cannot use tools
+toolChoice: 'none'; // AI cannot use tools
 </code></pre>
 <p style="margin: 12px 0; line-height: 1.6;"><strong style="font-weight: bold;">Best Practice:</strong> Use <code style="background-color: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-family: &quot;Courier New&quot;, Courier, monospace; font-size: 0.9em;">'auto'</code> to let the AI make intelligent decisions.</p>
 <hr style="border: none; border-top: 2px solid #eee; margin: 30px 0;">
 <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 24px; font-weight: bold;">3. Safety Mechanisms</h3>
-<pre style="background-color: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; margin: 20px 0;"><code class="language-typescript" style="background-color: transparent; padding: 0;">stopWhen: stepCountIs(15)  // Prevent infinite tool-calling loops
+<pre style="background-color: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; margin: 20px 0;"><code class="language-typescript" style="background-color: transparent; padding: 0;">stopWhen: stepCountIs(15); // Prevent infinite tool-calling loops
 </code></pre>
 <p style="margin: 12px 0; line-height: 1.6;">Without this, an agent might get stuck calling tools repeatedly. Always set a reasonable limit.</p>
 <hr style="border: none; border-top: 2px solid #eee; margin: 30px 0;">
@@ -289,39 +289,39 @@ Cost: 1 decision + 1 generation
 </ol>
 <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 24px; font-weight: bold;">Starter Code Structure:</h3>
 <pre style="background-color: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; margin: 20px 0;"><code class="language-typescript" style="background-color: transparent; padding: 0;">export async function ragAgent(request: AgentRequest): Promise&lt;AgentResponse&gt; {
-    return streamText({
-        model: openai('gpt-4o'),
-        toolChoice: 'auto',
-        stopWhen: stepCountIs(10),
-        tools: {
-            search_documentation: tool({
-                description: 'Search documentation for relevant context',
-                inputSchema: z.object({
-                    query: z.string(),
-                }),
-                execute: async ({ query }) =&gt; {
-                    // TODO: Implement your RAG workflow here
-                    // 1. Generate embedding
-                    // 2. Search vector DB
-                    // 3. Re-rank results
-                    // 4. Return context
-                },
-            }),
-        },
-        messages: [
-            {
-                role: 'system',
-                content: `You are a helpful assistant.
+	return streamText({
+		model: openai('gpt-4o'),
+		toolChoice: 'auto',
+		stopWhen: stepCountIs(10),
+		tools: {
+			search_documentation: tool({
+				description: 'Search documentation for relevant context',
+				inputSchema: z.object({
+					query: z.string(),
+				}),
+				execute: async ({ query }) =&gt; {
+					// TODO: Implement your RAG workflow here
+					// 1. Generate embedding
+					// 2. Search vector DB
+					// 3. Re-rank results
+					// 4. Return context
+				},
+			}),
+		},
+		messages: [
+			{
+				role: 'system',
+				content: `You are a helpful assistant.
 
 When the user asks about technical topics, use the search_documentation tool.
 For general conversation, answer directly without using tools.`,
-            },
-            {
-                role: 'user',
-                content: request.query,
-            },
-        ],
-    });
+			},
+			{
+				role: 'user',
+				content: request.query,
+			},
+		],
+	});
 }
 </code></pre>
 <hr style="border: none; border-top: 2px solid #eee; margin: 30px 0;">
@@ -335,9 +335,9 @@ For general conversation, answer directly without using tools.`,
 <li style="margin: 5px 0;">Body:</li>
 </ul>
 <pre style="background-color: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; margin: 20px 0;"><code class="language-json" style="background-color: transparent; padding: 0;">{
-  "messages": [{"role": "user", "content": "How do I use React hooks?"}],
-  "agent": "rag",
-  "query": "React hooks documentation"
+	"messages": [{ "role": "user", "content": "How do I use React hooks?" }],
+	"agent": "rag",
+	"query": "React hooks documentation"
 }
 </code></pre>
 <p style="margin: 12px 0; line-height: 1.6;"><strong style="font-weight: bold;">Expected:</strong> AI calls <code style="background-color: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-family: &quot;Courier New&quot;, Courier, monospace; font-size: 0.9em;">search_documentation</code> tool, retrieves context, generates answer.</p>
@@ -351,8 +351,8 @@ For general conversation, answer directly without using tools.`,
 <li style="margin: 5px 0;">Body:</li>
 </ul>
 <pre style="background-color: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; margin: 20px 0;"><code class="language-json" style="background-color: transparent; padding: 0;">{
-  "messages": [{"role": "user", "content": "Thanks!"}],
-  "agent": "rag"
+	"messages": [{ "role": "user", "content": "Thanks!" }],
+	"agent": "rag"
 }
 </code></pre>
 <p style="margin: 12px 0; line-height: 1.6;"><strong style="font-weight: bold;">Expected:</strong> AI responds directly without calling any tools.</p>
@@ -360,14 +360,14 @@ For general conversation, answer directly without using tools.`,
 <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 24px; font-weight: bold;">Debugging Tool Calls</h3>
 <p style="margin: 12px 0; line-height: 1.6;">Add logging to see when tools are called:</p>
 <pre style="background-color: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; margin: 20px 0;"><code class="language-typescript" style="background-color: transparent; padding: 0;">execute: async ({ query }) =&gt; {
-    console.log('🔧 Tool called with query:', query);
+	console.log('🔧 Tool called with query:', query);
 
-    const results = await performRAG(query);
+	const results = await performRAG(query);
 
-    console.log('📊 Retrieved context:', results.length, 'documents');
+	console.log('📊 Retrieved context:', results.length, 'documents');
 
-    return results;
-}
+	return results;
+};
 </code></pre>
 <p style="margin: 12px 0; line-height: 1.6;">You should see tool calls logged only for queries that need context retrieval.</p>
 <hr style="border: none; border-top: 2px solid #eee; margin: 30px 0;">
@@ -408,14 +408,5 @@ Total = $1.45
 <hr style="border: none; border-top: 2px solid #eee; margin: 30px 0;">
 <h2 style="margin-top: 24px; margin-bottom: 12px; font-size: 28px; font-weight: bold;">What You Learned</h2>
 <p style="margin: 12px 0; line-height: 1.6;">✅ The difference between tools and workflows<br>✅ When to use tool-calling vs direct workflows<br>✅ How to implement tools with the AI SDK<br>✅ Tool choice strategies and safety mechanisms<br>✅ Cost implications of intelligent tool selection<br>✅ How to test and debug tool-calling agents</p>
-<hr style="border: none; border-top: 2px solid #eee; margin: 30px 0;">
-<h2 style="margin-top: 24px; margin-bottom: 12px; font-size: 28px; font-weight: bold;">What's Next?</h2>
-<p style="margin: 12px 0; line-height: 1.6;">Consider exploring:</p>
-<ul style="margin: 10px 0; padding-left: 30px;">
-<li style="margin: 5px 0;"><strong style="font-weight: bold;">Multi-step tool use</strong>: Agent calls multiple tools in sequence</li>
-<li style="margin: 5px 0;"><strong style="font-weight: bold;">Tool chaining</strong>: Output of one tool feeds into another</li>
-<li style="margin: 5px 0;"><strong style="font-weight: bold;">Conditional tools</strong>: Different tools for different user types</li>
-<li style="margin: 5px 0;"><strong style="font-weight: bold;">Observability</strong>: Tracking tool usage and performance (next module!)</li>
-</ul>
 
 

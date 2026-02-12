@@ -316,14 +316,13 @@ const chunks = await processor.processUrls(urls);
 <h2 style="margin-top: 24px; margin-bottom: 12px; font-size: 28px; font-weight: bold;">What's Next?</h2>
 <p style="margin: 12px 0; line-height: 1.6;">You've built the upload pipeline - documents are now in Pinecone as searchable vectors!</p>
 <p style="margin: 12px 0; line-height: 1.6;"><strong style="font-weight: bold;">But here's the thing:</strong> Right now you can only upload. You can't ask questions yet.</p>
-<p style="margin: 12px 0; line-height: 1.6;">In the next module, you'll build the query side - the part that lets you:</p>
+<p style="margin: 12px 0; line-height: 1.6;">Next, you'll build the query side - the part that lets you:</p>
 <ul style="margin: 10px 0; padding-left: 30px;">
 <li style="margin: 5px 0;">Ask "Tell me about Anthropic"</li>
 <li style="margin: 5px 0;">Ask "How do I use the Pinecone TypeScript client?"</li>
 <li style="margin: 5px 0;">Ask "What are common pitfalls?"</li>
 </ul>
 <p style="margin: 12px 0; line-height: 1.6;">And get answers based on YOUR knowledge base, not hallucinations!</p>
-<p style="margin: 12px 0; line-height: 1.6;"><strong style="font-weight: bold;">Next up:</strong> Module 5.3 - Querying Documents</p>
 <p style="margin: 12px 0; line-height: 1.6;">This is where the full request/response cycle comes alive and RAG starts to feel like magic.</p>
 <hr style="border: none; border-top: 2px solid #eee; margin: 30px 0;">
 <h2 style="margin-top: 24px; margin-bottom: 12px; font-size: 28px; font-weight: bold;">Bonus: Understanding the Text Upload Route</h2>
@@ -341,14 +340,92 @@ const chunks = await processor.processUrls(urls);
 
 <hr style="border: none; border-top: 2px solid #eee; margin: 30px 0;">
 <h2 style="margin-top: 24px; margin-bottom: 12px; font-size: 28px; font-weight: bold;">Challenge Solution</h2>
-<p style="margin: 12px 0; line-height: 1.6;"><strong style="font-weight: bold;">Reference Implementation:</strong> Check <code style="background-color: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-family: &quot;Courier New&quot;, Courier, monospace; font-size: 0.9em;">app/api/upload-text/route.ts</code> in your codebase.</p>
-<p style="margin: 12px 0; line-height: 1.6;">The complete solution follows the same pattern as the upload-text route, with these key differences:</p>
+<p style="margin: 12px 0; line-height: 1.6;">Here's the complete implementation for <code style="background-color: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-family: &quot;Courier New&quot;, Courier, monospace; font-size: 0.9em;">app/api/upload-document/route.ts</code>:</p>
+<pre style="background-color: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; margin: 20px 0;"><code class="language-typescript" style="background-color: transparent; padding: 0;">import { NextRequest, NextResponse } from 'next/server';
+import { DataProcessor } from '@/app/libs/dataProcessor';
+import { openaiClient } from '@/app/libs/openai/openai';
+import { pineconeClient } from '@/app/libs/pinecone';
+import { z } from 'zod';
+
+const uploadDocumentSchema = z.object({
+	urls: z.array(z.string().url()).min(1),
+});
+
+export async function POST(req: NextRequest) {
+	try {
+		const body = await req.json();
+		const parsed = uploadDocumentSchema.parse(body);
+		const { urls } = parsed;
+
+		// Step 1: Scrape and chunk the content
+		const processor = new DataProcessor();
+		const chunks = await processor.processUrls(urls);
+
+		if (chunks.length === 0) {
+			return NextResponse.json(
+				{ error: 'No content found to process' },
+				{ status: 400 }
+			);
+		}
+
+		// Step 2: Generate embeddings and upload to Pinecone
+		const index = pineconeClient.Index(process.env.PINECONE_INDEX!);
+		const batchSize = 100;
+		let successCount = 0;
+
+		for (let i = 0; i &lt; chunks.length; i += batchSize) {
+			const batch = chunks.slice(i, i + batchSize);
+
+			// Generate embeddings
+			const embeddingResponse = await openaiClient.embeddings.create({
+				model: 'text-embedding-3-small',
+				input: batch.map((chunk) =&gt; chunk.content),
+			});
+
+			// Prepare vectors for Pinecone
+			const vectors = batch.map((chunk, idx) =&gt; ({
+				id: `${chunk.metadata.url}-${chunk.metadata.chunkIndex}`,
+				values: embeddingResponse.data[idx].embedding,
+				metadata: {
+					text: chunk.content,
+					url: chunk.metadata.url || '',
+					title: chunk.metadata.title || '',
+					chunkIndex: chunk.metadata.chunkIndex || 0,
+					totalChunks: chunk.metadata.totalChunks || 0,
+				},
+			}));
+
+			// Upload to Pinecone
+			await index.upsert(vectors);
+			successCount += batch.length;
+		}
+
+		return NextResponse.json({
+			success: true,
+			chunksProcessed: chunks.length,
+			vectorsUploaded: successCount,
+		});
+	} catch (error) {
+		console.error('Error uploading documents:', error);
+		return NextResponse.json(
+			{ error: 'Failed to upload documents' },
+			{ status: 500 }
+		);
+	}
+}
+</code></pre>
+<p style="margin: 12px 0; line-height: 1.6;"><strong style="font-weight: bold;">Key implementation points:</strong></p>
 <ul style="margin: 10px 0; padding-left: 30px;">
-<li style="margin: 5px 0;">Uses <code style="background-color: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-family: &quot;Courier New&quot;, Courier, monospace; font-size: 0.9em;">DataProcessor.processUrls()</code> instead of <code style="background-color: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-family: &quot;Courier New&quot;, Courier, monospace; font-size: 0.9em;">chunkText()</code></li>
-<li style="margin: 5px 0;">Processes URLs instead of raw text input</li>
-<li style="margin: 5px 0;">Same embedding generation and Pinecone upload logic</li>
+<li style="margin: 5px 0;"><strong style="font-weight: bold;">Step 1:</strong> Parse and validate URLs using Zod schema</li>
+<li style="margin: 5px 0;"><strong style="font-weight: bold;">Step 2:</strong> Use DataProcessor to scrape and chunk URLs</li>
+<li style="margin: 5px 0;"><strong style="font-weight: bold;">Step 3:</strong> Check for empty chunks and return error if none</li>
+<li style="margin: 5px 0;"><strong style="font-weight: bold;">Step 4:</strong> Get Pinecone index from environment variable</li>
+<li style="margin: 5px 0;"><strong style="font-weight: bold;">Step 5:</strong> Process chunks in batches of 100</li>
+<li style="margin: 5px 0;"><strong style="font-weight: bold;">Step 6:</strong> Generate embeddings for each batch using OpenAI</li>
+<li style="margin: 5px 0;"><strong style="font-weight: bold;">Step 7:</strong> Map chunks to Pinecone vector format with metadata</li>
+<li style="margin: 5px 0;"><strong style="font-weight: bold;">Step 8:</strong> Upload vectors to Pinecone using upsert</li>
+<li style="margin: 5px 0;"><strong style="font-weight: bold;">Step 9:</strong> Return success response with counts</li>
 </ul>
-<p style="margin: 12px 0; line-height: 1.6;">Study the upload-text route to see the complete implementation pattern for generating embeddings, formatting vectors, and uploading with proper error handling.</p>
 <hr style="border: none; border-top: 2px solid #eee; margin: 30px 0;">
 <h2 style="margin-top: 24px; margin-bottom: 12px; font-size: 28px; font-weight: bold;">What You Built</h2>
 <p style="margin: 12px 0; line-height: 1.6;">You now have a complete document ingestion pipeline! This is the "write" side of your RAG system.</p>
@@ -360,6 +437,6 @@ const chunks = await processor.processUrls(urls);
 <li style="margin: 5px 0;">✅ Batch upload to Pinecone</li>
 <li style="margin: 5px 0;">✅ Proper metadata tracking</li>
 </ul>
-<p style="margin: 12px 0; line-height: 1.6;"><strong style="font-weight: bold;">What's next:</strong><br>In the next module, you'll build the "read" side - querying Pinecone to answer questions about your knowledge base. This is where RAG comes alive!</p>
+<p style="margin: 12px 0; line-height: 1.6;"><strong style="font-weight: bold;">What's next:</strong><br>You'll build the "read" side - querying Pinecone to answer questions about your knowledge base. This is where RAG comes alive!</p>
 
 

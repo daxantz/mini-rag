@@ -8,16 +8,16 @@ The selector agent is critical to your RAG system - it routes queries to the rig
 
 Watch this guide to testing and the course outro:
 
-<div style="position: relative; padding-bottom: 56.25%; height: 0;"><iframe src="https://web.descript.com/4e24aa99-848b-45ff-b17c-e425a4306285/2df08" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe></div>
+<div style="position: relative; padding-bottom: 56.25%; height: 0;"><iframe src="https://share.descript.com/embed/bLBxAMMBx6D" width="640" height="360" frameborder="0" allowfullscreen></iframe></div>
 
 ---
 
 ## What You'll Learn
 
--   Why testing AI agents is challenging
--   What you can (and can't) test with LLMs
--   How to write simple, effective tests
--   Running and debugging your test suite
+- Why testing AI agents is challenging
+- What you can (and can't) test with LLMs
+- How to write simple, effective tests
+- Running and debugging your test suite
 
 ---
 
@@ -40,11 +40,13 @@ Even with `temperature=0`, you get slight variations.
 ### What This Means for Testing
 
 **❌ DON'T test:**
+
 - Exact text output ("should return 'Explain React hooks'")
 - Specific word choices
 - Response creativity or style
 
 **✅ DO test:**
+
 - Output structure (has required fields)
 - Agent routing decisions (linkedin vs rag)
 - Response validity (not empty, proper type)
@@ -89,9 +91,9 @@ import { POST } from '@/app/api/select-agent/route';
 
 // Create a mock request
 const request = {
-  json: async () => ({
-    messages: [{ role: 'user', content: query }],
-  }),
+	json: async () => ({
+		messages: [{ role: 'user', content: query }],
+	}),
 } as NextRequest;
 
 // Call the handler directly
@@ -103,16 +105,17 @@ const result = await response.json();
 
 ```typescript
 it('should route LinkedIn post creation to linkedin agent', async () => {
-  const result = await selectAgent(
-    'Write a LinkedIn post about learning TypeScript'
-  );
+	const result = await selectAgent(
+		'Write a LinkedIn post about learning TypeScript',
+	);
 
-  expect(result.agent).toBe('linkedin');
-  expect(result.query).toBeTruthy();
+	expect(result.agent).toBe('linkedin');
+	expect(result.query).toBeTruthy();
 });
 ```
 
 **What we're checking:**
+
 - ✅ Routes to `'linkedin'` agent
 - ✅ Returns a non-empty refined query
 
@@ -120,14 +123,15 @@ it('should route LinkedIn post creation to linkedin agent', async () => {
 
 ```typescript
 it('should route technical documentation questions to rag agent', async () => {
-  const result = await selectAgent('How do React hooks work?');
+	const result = await selectAgent('How do React hooks work?');
 
-  expect(result.agent).toBe('rag');
-  expect(result.query).toBeTruthy();
+	expect(result.agent).toBe('rag');
+	expect(result.query).toBeTruthy();
 });
 ```
 
 **What we're checking:**
+
 - ✅ Routes to `'rag'` agent
 - ✅ Technical questions go to RAG
 
@@ -135,15 +139,16 @@ it('should route technical documentation questions to rag agent', async () => {
 
 ```typescript
 it('should return valid response structure', async () => {
-  const result = await selectAgent('Any question here');
+	const result = await selectAgent('Any question here');
 
-  expect(result).toHaveProperty('agent');
-  expect(result).toHaveProperty('query');
-  expect(['linkedin', 'rag']).toContain(result.agent);
+	expect(result).toHaveProperty('agent');
+	expect(result).toHaveProperty('query');
+	expect(['linkedin', 'rag']).toContain(result.agent);
 });
 ```
 
 **What we're checking:**
+
 - ✅ Has required fields (`agent` and `query`)
 - ✅ Agent is valid ('linkedin' or 'rag')
 
@@ -151,13 +156,14 @@ it('should return valid response structure', async () => {
 
 ```typescript
 it('should handle very short queries', async () => {
-  const result = await selectAgent('Help');
+	const result = await selectAgent('Help');
 
-  expect(['linkedin', 'rag']).toContain(result.agent);
+	expect(['linkedin', 'rag']).toContain(result.agent);
 });
 ```
 
 **What we're checking:**
+
 - ✅ Doesn't crash on short input
 - ✅ Still routes to a valid agent
 
@@ -172,6 +178,7 @@ yarn test:selector
 ```
 
 **Expected output:**
+
 ```
 PASS app/agents/__tests__/selector.test.ts
   Selector Agent Routing
@@ -211,28 +218,36 @@ Time:        17.234s
 ### Common Issues
 
 **❌ "Timeout exceeded"**
+
 ```
 Test timeout of 5000ms exceeded
 ```
+
 **Fix:** Tests have 15s timeout - this means API is slow or down. Check:
+
 - OpenAI API status
 - Your internet connection
 - Rate limits
 
 **❌ "Unexpected agent selected"**
+
 ```
 Expected: 'linkedin'
 Received: 'rag'
 ```
+
 **Fix:** This can happen! LLMs are non-deterministic. Ask yourself:
+
 - Is my test query actually clear?
 - Could it reasonably go to either agent?
 - Maybe my expectation is wrong?
 
 **❌ "Missing API key"**
+
 ```
 Error: OPENAI_API_KEY is not set
 ```
+
 **Fix:** Check your `.env.local` file has the key
 
 ---
@@ -243,7 +258,7 @@ Error: OPENAI_API_KEY is not set
 
 ```typescript
 // This query is ambiguous:
-"Tell me about JavaScript"
+'Tell me about JavaScript';
 
 // Could route to:
 // - 'rag' → technical documentation
@@ -255,6 +270,7 @@ Error: OPENAI_API_KEY is not set
 ### How to Handle It
 
 1. **Make queries clearer:**
+
 ```typescript
 ❌ "Tell me about JavaScript"
 ✅ "Write a LinkedIn post about JavaScript"
@@ -262,6 +278,7 @@ Error: OPENAI_API_KEY is not set
 ```
 
 2. **Accept some randomness:**
+
 ```typescript
 // Instead of this:
 expect(data.selectedAgent).toBe('rag');
@@ -277,12 +294,14 @@ expect(['linkedin', 'rag']).toContain(data.selectedAgent);
 Remember, we're keeping it simple:
 
 ❌ **Not testing:**
+
 - Exact refined query text
 - Response quality or tone
 - Specific word choices
 - LLM creativity
 
 ✅ **Only testing:**
+
 - Routing decisions
 - Response structure
 - Error handling
@@ -295,11 +314,13 @@ This keeps tests stable and reliable despite AI non-determinism.
 ## Your Turn
 
 **Run the tests:**
+
 ```bash
 yarn test:selector
 ```
 
 **Verify:**
+
 - All 11 tests pass ✅
 - Takes 15-20 seconds
 - No errors in output
@@ -313,6 +334,7 @@ If tests fail, review the "When Tests Fail" section above.
 ## What's Next?
 
 Now you have:
+
 - ✅ Working agent system
 - ✅ Observability with Helicone
 - ✅ Test coverage for routing

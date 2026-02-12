@@ -543,9 +543,9 @@ Now you understand:
 Excellent! Your selector is now production-ready with type-safe, reliable routing.
 
 **Coming up:**
-- **Module 8:** Building the LinkedIn Agent with fine-tuned models
-- **Module 9:** Building the RAG Agent with retrieval and context
-- **Module 10:** Connecting everything with a streaming chat interface
+- Building the LinkedIn Agent with fine-tuned models
+- Building the RAG Agent with retrieval and context
+- Connecting everything with a streaming chat interface
 
 ---
 
@@ -586,3 +586,149 @@ z.string().optional()               // Optional string
 - [OpenAI Structured Outputs Best Practices](https://platform.openai.com/docs/guides/structured-outputs/best-practices)
 - [Zod Type Inference Guide](https://zod.dev/?id=type-inference)
 - [JSON Schema vs Zod](https://zod.dev/?id=json-schema)
+
+---
+
+## 📝 Optional Exercise: Guardrails & Prompt Experimentation
+
+**This is an optional but recommended exercise for deepening your understanding of agent behavior.**
+
+Now that you have a working selector with structured outputs, these exercises will help you refine and experiment with your agent system.
+
+### Part 1: Implement Query Guardrails
+
+**Challenge:** Handle irrelevant or out-of-scope queries gracefully.
+
+**Scenario:** Your RAG system should only handle:
+- LinkedIn content creation requests
+- Technical documentation questions
+
+But users might ask:
+- "What's the weather today?"
+- "Tell me a joke"
+- "What's 2 + 2?"
+
+**Your Task:**
+
+1. **Modify the selector agent** to detect out-of-scope queries
+2. **Return a helpful message** when query is irrelevant
+3. **Suggest what the system CAN help with**
+
+**Implementation Options:**
+
+**Option A: Add a "none" agent type**
+```typescript
+const agentSelectionSchema = z.object({
+  agent: z.enum(['linkedin', 'rag', 'none']),
+  query: z.string(),
+  clarification: z.string().optional(), // Explain why it's out of scope
+});
+```
+
+**Option B: Add validation in the prompt**
+```typescript
+system: `You route queries to agents. If the query is not about:
+- LinkedIn/professional content creation
+- Technical documentation
+
+Then reject it politely and explain what you CAN help with.`
+```
+
+**Test Cases:**
+- "What's the capital of France?" → Should be rejected
+- "Write a LinkedIn post about AI" → Should work
+- "How do React hooks work?" → Should work
+- "Tell me a joke" → Should be rejected
+
+**Bonus:** Log rejected queries to understand what users are trying to do.
+
+---
+
+### Part 2: Prompt Engineering Experiments
+
+**Challenge:** Explore how different prompt variations affect agent behavior.
+
+**Experiments to Try:**
+
+**Experiment 1: Temperature Variations**
+```typescript
+// Test the same query with different temperatures
+const query = "Write a LinkedIn post about learning TypeScript";
+
+// Temperature 0.0
+// Temperature 0.5
+// Temperature 1.0
+// Temperature 1.5
+
+// Document: How does the output change? Which is best for this use case?
+```
+
+**Experiment 2: System Prompt Variations**
+```typescript
+// Try 3 different system prompts for the same task:
+
+// Prompt A: Minimal
+"You route queries to agents."
+
+// Prompt B: Detailed
+"You are an intelligent routing system that analyzes user intent and selects the appropriate agent..."
+
+// Prompt C: With Examples (Few-shot)
+"You route queries. Examples:
+- 'Write a post' → linkedin
+- 'Explain hooks' → rag"
+
+// Compare: Which gives best results? Why?
+```
+
+**Experiment 3: Model Comparison**
+```typescript
+// Test the same prompt with different models:
+- gpt-4o-mini
+- gpt-4o
+- gpt-4-turbo
+
+// Measure:
+// - Response quality
+// - Latency
+// - Cost (estimate from docs)
+// - Consistency (run 3x)
+```
+
+**Experiment 4: Query Refinement**
+```typescript
+// Test different refinement approaches:
+
+// Original: "tell me bout hooks"
+// Refinement 1: "React hooks explanation"
+// Refinement 2: "How to use React hooks"
+// Refinement 3: "React hooks tutorial"
+
+// Which refinement style retrieves best results?
+```
+
+**What to Document:**
+
+Create a simple document tracking:
+1. What you tested
+2. What you observed
+3. What you learned
+4. What you'd use in production
+
+**Example:**
+```markdown
+## Experiment: Temperature for Routing
+
+Test: Query "Write a LinkedIn post about AI" with temps 0.0, 0.5, 1.0
+
+Results:
+- Temp 0.0: Always picked 'linkedin' (10/10 tries) ✅
+- Temp 0.5: Picked 'linkedin' 9/10 times ⚠️
+- Temp 1.0: Picked 'linkedin' 7/10 times ❌
+
+Conclusion: Use temp 0.0-0.1 for routing. Consistency matters more than creativity.
+```
+
+**Estimated Time:** 1-2 hours (totally optional!)
+
+**Why This Matters:** Experimentation teaches you how LLMs behave in ways documentation cannot. Every production system requires this kind of empirical testing.
