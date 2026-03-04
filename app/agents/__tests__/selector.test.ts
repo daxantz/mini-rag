@@ -48,13 +48,12 @@ describe('Selector Agent Routing', () => {
 			expect(result.agent).toBe('linkedin');
 		});
 
-		it('should route professional networking questions to linkedin agent', async () => {
-			const result = await selectAgent(
-				'How do I improve my LinkedIn profile?'
-			);
-
-			expect(result.agent).toBe('linkedin');
-		});
+		// TODO: Add your own LinkedIn routing tests here
+		// Ideas:
+		// - Professional networking questions
+		// - Job search queries
+		// - Resume and career tips
+		// - Personal branding advice
 	});
 
 	describe('RAG Agent Routing', () => {
@@ -73,13 +72,12 @@ describe('Selector Agent Routing', () => {
 			expect(result.agent).toBe('rag');
 		});
 
-		it('should route framework questions to rag agent', async () => {
-			const result = await selectAgent(
-				'What is the difference between useEffect and useLayoutEffect?'
-			);
-
-			expect(result.agent).toBe('rag');
-		});
+		// TODO: Add your own RAG routing tests here
+		// Ideas:
+		// - API documentation queries
+		// - Debugging questions
+		// - Framework best practices
+		// - Code examples and tutorials
 	});
 
 	describe('Response Structure', () => {
@@ -111,18 +109,27 @@ describe('Selector Agent Routing', () => {
 			expect(['linkedin', 'rag']).toContain(result.agent);
 		});
 
-		it('should handle out-of-domain queries', async () => {
-			const result = await selectAgent('What is the weather today?');
-
-			// Should pick an agent (probably rag as fallback)
-			expect(['linkedin', 'rag']).toContain(result.agent);
-		});
-
 		it('should handle ambiguous queries', async () => {
 			const result = await selectAgent('Tell me about JavaScript');
 
 			// Could go to either agent - both are valid
 			expect(['linkedin', 'rag']).toContain(result.agent);
 		});
+
+		// TODO: Add your own edge case tests here
+		// Ideas:
+		// - Very long queries
+		// - Queries with special characters
+		// - Out-of-domain queries
+		// - Mixed intent queries
 	});
+
+	// TODO: Add your own test suites here
+	// Example:
+	// describe('Your Custom Test Suite', () => {
+	//   it('should test something specific', async () => {
+	//     const result = await selectAgent('your query');
+	//     expect(result.agent).toBe('linkedin'); // or 'rag'
+	//   });
+	// });
 });

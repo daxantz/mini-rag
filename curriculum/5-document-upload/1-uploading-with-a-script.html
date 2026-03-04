@@ -1,0 +1,272 @@
+<h1>Uploading Documents with a Script</h1>
+<p>Let&#39;s get content into your RAG system! We&#39;ll start with a simple script approach before building the API route.</p>
+<hr>
+<h2>Video Walkthrough</h2>
+<p>Watch how to upload vectors to Pinecone:</p>
+<iframe src="https://share.descript.com/embed/Ypt5j0zCq3x" width="640" height="360" frameborder="0" allowfullscreen></iframe>
+
+<hr>
+<h2>What You&#39;ll Learn</h2>
+<ul>
+<li>How to scrape URLs and create chunks</li>
+<li>How to generate embeddings for chunks</li>
+<li>How to upload vectors to Pinecone in batches</li>
+<li>How to run the upload script</li>
+</ul>
+<hr>
+<h2>The Upload Script</h2>
+<p>Located at: <code>app/scripts/scrapeAndVectorizeContent.ts</code></p>
+<p>This script handles the entire pipeline:</p>
+<pre><code>URLs → Scrape → Chunk → Embed → Upload to Pinecone
+</code></pre>
+<hr>
+<h2>Understanding the Script</h2>
+<h3>Main Function</h3>
+<pre><code class="language-typescript">async function scrapeAndVectorize(urls: string[]) {
+	// Step 1: Scrape and chunk
+	const processor = new DataProcessor();
+	const chunks = await processor.processUrls(urls);
+
+	// Step 2: Generate embeddings and upload
+	const index = pineconeClient.Index(process.env.PINECONE_INDEX);
+
+	for (let i = 0; i &lt; chunks.length; i += batchSize) {
+		const batch = chunks.slice(i, i + batchSize);
+
+		// Generate embeddings
+		const embeddingResponse = await openaiClient.embeddings.create({
+			model: &#39;text-embedding-3-small&#39;,
+			input: batch.map((chunk) =&gt; chunk.content),
+		});
+
+		// Format vectors
+		const vectors = batch.map((chunk, idx) =&gt; ({
+			id: `${chunk.metadata.url}-${chunk.metadata.chunkIndex}`,
+			values: embeddingResponse.data[idx].embedding,
+			metadata: {
+				text: chunk.content,
+				url: chunk.metadata.url,
+				title: chunk.metadata.title,
+				chunkIndex: chunk.metadata.chunkIndex,
+				totalChunks: chunk.metadata.totalChunks,
+			},
+		}));
+
+		// Upload
+		await index.upsert(vectors);
+	}
+}
+</code></pre>
+<p><strong>The flow:</strong></p>
+<p><strong>Step 1: Scrape and Chunk</strong></p>
+<pre><code class="language-typescript">const processor = new DataProcessor();
+const chunks = await processor.processUrls(urls);
+</code></pre>
+<p>DataProcessor:</p>
+<ul>
+<li>Scrapes each URL</li>
+<li>Extracts text content</li>
+<li>Chunks with your <code>chunkText()</code> function</li>
+<li>Returns array of chunks with metadata</li>
+</ul>
+<p><strong>Step 2: Batch Processing</strong></p>
+<pre><code class="language-typescript">for (let i = 0; i &lt; chunks.length; i += batchSize) {
+	const batch = chunks.slice(i, i + batchSize);
+	// ...
+}
+</code></pre>
+<p>Why batches of 100?</p>
+<ul>
+<li>OpenAI embedding API has limits</li>
+<li>Pinecone performs better with batched upserts</li>
+<li>Easier to track progress</li>
+</ul>
+<p><strong>Step 3: Generate Embeddings</strong></p>
+<pre><code class="language-typescript">const embeddingResponse = await openaiClient.embeddings.create({
+	model: &#39;text-embedding-3-small&#39;,
+	input: batch.map((chunk) =&gt; chunk.content),
+});
+</code></pre>
+<p>Sends 100 text chunks, gets back 100 embeddings (512-dimensional vectors).</p>
+<p><strong>Step 4: Format Vectors</strong></p>
+<pre><code class="language-typescript">const vectors = batch.map((chunk, idx) =&gt; ({
+	id: `${chunk.metadata.url}-${chunk.metadata.chunkIndex}`,
+	values: embeddingResponse.data[idx].embedding,
+	metadata: {
+		text: chunk.content,
+		url: chunk.metadata.url,
+		// ...
+	},
+}));
+</code></pre>
+<p>Pinecone vector format:</p>
+<ul>
+<li><code>id</code>: Unique identifier</li>
+<li><code>values</code>: The embedding (512 numbers)</li>
+<li><code>metadata</code>: Stored alongside for retrieval</li>
+</ul>
+<p><strong>Step 5: Upload</strong></p>
+<pre><code class="language-typescript">await index.upsert(vectors);
+</code></pre>
+<p>Upserts to Pinecone (insert or update if exists).</p>
+<hr>
+<h2>Running the Script</h2>
+<h3>1. Check Environment Variables</h3>
+<p>Ensure <code>.env.local</code> has:</p>
+<pre><code class="language-bash">OPENAI_API_KEY=sk-...
+PINECONE_API_KEY=...
+PINECONE_INDEX=your-index-name
+</code></pre>
+<h3>2. Customize URLs</h3>
+<p>Edit the script:</p>
+<pre><code class="language-typescript">async function main() {
+	const urls = [
+		&#39;https://react.dev/learn&#39;,
+		&#39;https://nextjs.org/docs&#39;,
+		// Add your URLs here!
+	];
+
+	await scrapeAndVectorize(urls);
+}
+</code></pre>
+<h3>3. Run the Script</h3>
+<pre><code class="language-bash">yarn scrape-content
+</code></pre>
+<p>Or directly:</p>
+<pre><code class="language-bash">npx ts-node app/scripts/scrapeAndVectorizeContent.ts
+</code></pre>
+<h3>4. Watch the Output</h3>
+<pre><code class="language-bash">📥 Scraping 8 URLs...
+✅ Processed https://react.dev/learn: 47 chunks
+✅ Processed https://nextjs.org/docs: 62 chunks
+...
+
+✅ Created 245 chunks from content
+
+🔄 Generating embeddings and uploading to Pinecone...
+Processing batch 1/3...
+✅ Uploaded 100 vectors
+Processing batch 2/3...
+✅ Uploaded 100 vectors
+Processing batch 3/3...
+✅ Uploaded 45 vectors
+
+📊 SUMMARY
+==================
+Total chunks: 245
+Successful: 245
+Failed: 0
+Completed at: 2025-01-15T10:30:45.123Z
+</code></pre>
+<hr>
+<h2>Verifying the Upload</h2>
+<h3>Check Pinecone Dashboard</h3>
+<ol>
+<li>Go to <a href="https://app.pinecone.io">https://app.pinecone.io</a></li>
+<li>Select your index</li>
+<li>Check vector count matches output</li>
+<li>Try a test query</li>
+</ol>
+<h2>Common Issues</h2>
+<h3>&quot;No content found to process&quot;</h3>
+<p><strong>Possible causes:</strong></p>
+<ul>
+<li>URLs unreachable</li>
+<li>Scraper blocked by website</li>
+<li>Content parsing failed</li>
+</ul>
+<p><strong>Debug:</strong></p>
+<pre><code class="language-typescript">const chunks = await processor.processUrls(urls);
+console.log(&#39;Chunks:&#39;, chunks.length);
+chunks.forEach((c) =&gt; console.log(c.content.substring(0, 100)));
+</code></pre>
+<h3>&quot;Failed to process batch&quot;</h3>
+<p><strong>Possible causes:</strong></p>
+<ul>
+<li>OpenAI API key invalid</li>
+<li>Rate limits hit</li>
+<li>Network issues</li>
+</ul>
+<p><strong>Debug:</strong><br>Check the error message:</p>
+<pre><code class="language-typescript">} catch (error) {
+  console.error(&#39;Batch error:&#39;, error);
+  // Look at the specific error
+}
+</code></pre>
+<h3>&quot;PINECONE_INDEX not set&quot;</h3>
+<p><strong>Fix:</strong></p>
+<pre><code class="language-bash"># In .env.local
+PINECONE_INDEX=your-index-name
+</code></pre>
+<h3>Script hangs</h3>
+<p><strong>Possible causes:</strong></p>
+<ul>
+<li>Very large documents</li>
+<li>Network timeout</li>
+<li>Pinecone connection issue</li>
+</ul>
+<p><strong>Fix:</strong><br>Add timeout or reduce batch size:</p>
+<pre><code class="language-typescript">const batchSize = 50; // Instead of 100
+</code></pre>
+<hr>
+<h2>Challenge: Automate Data Collection</h2>
+<p>Now that you can upload documents with a script, think about:</p>
+<p><strong>How would you automate this to collect way more data?</strong></p>
+<p>Ideas to consider:</p>
+<ol>
+<li><p><strong>Sitemap Crawling</strong></p>
+<ul>
+<li>Parse sitemap.xml files</li>
+<li>Extract all URLs automatically</li>
+<li>Process hundreds of pages</li>
+</ul>
+</li>
+<li><p><strong>Recursive Scraping</strong></p>
+<ul>
+<li>Start with one page</li>
+<li>Extract all links</li>
+<li>Follow links to scrape entire site</li>
+</ul>
+</li>
+<li><p><strong>Scheduled Updates</strong></p>
+<ul>
+<li>Run script daily with cron</li>
+<li>Keep content fresh</li>
+<li>Handle changed content</li>
+</ul>
+</li>
+<li><p><strong>Multiple Sources</strong></p>
+<ul>
+<li>GitHub repos</li>
+<li>Blog RSS feeds</li>
+<li>Documentation sites</li>
+<li>YouTube transcripts</li>
+</ul>
+</li>
+<li><p><strong>Deduplication</strong></p>
+<ul>
+<li>Check if URL already exists</li>
+<li>Only update if content changed</li>
+<li>Avoid duplicate vectors</li>
+</ul>
+</li>
+</ol>
+<p><strong>Think about:</strong></p>
+<ul>
+<li>How would you track what&#39;s been processed?</li>
+<li>How would you handle rate limits?</li>
+<li>How would you update existing content?</li>
+<li>How would you scale to thousands of URLs?</li>
+</ul>
+<p>We&#39;ll explore automating this in the next section when we build the API route!</p>
+<hr>
+<h2>What You Learned</h2>
+<p>✅ How to use DataProcessor for scraping + chunking<br>✅ How to generate embeddings in batches<br>✅ How to format vectors for Pinecone<br>✅ How to upload with the script<br>✅ How to verify uploads worked</p>
+<hr>
+<h2>Additional Video: Uploading Documents</h2>
+<p>Watch this walkthrough of the document upload process:</p>
+<iframe src="https://share.descript.com/embed/vXKQ7RBncMc" width="640" height="360" frameborder="0" allowfullscreen></iframe>
+
+<hr>
+<h2>What&#39;s Next</h2>
+<p>Now that you can upload via script, let&#39;s build an API route so users can upload documents through the UI!</p>

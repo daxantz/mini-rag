@@ -1,0 +1,419 @@
+<h1>Implementing the Selector Agent (Text-Based)</h1>
+<p>The selector is the brain of your agent system. It reads conversation history and decides which specialized agent should respond. In this module, you&#39;ll implement it using a simple text-based approach.</p>
+<hr>
+<h2>Video Walkthrough</h2>
+<p>Watch this guide to implementing the selector:</p>
+<iframe src="https://share.descript.com/embed/ipwcGMBuApw" width="640" height="360" frameborder="0" allowfullscreen></iframe>
+
+<hr>
+<h2>What You&#39;ll Build</h2>
+<p>By the end of this module, you&#39;ll have:</p>
+<ul>
+<li>A working selector agent that routes queries to the correct agent</li>
+<li>Understanding of text-based LLM responses and parsing</li>
+<li>Query refinement logic to clean user input</li>
+<li>Validation and fallback handling</li>
+</ul>
+<hr>
+<h2>Understanding the Route</h2>
+<p>Open <code>app/api/select-agent/route.ts</code>. This route receives conversation history and returns which agent should handle the request.</p>
+<p><strong>Input:</strong></p>
+<pre><code class="language-json">{
+	&quot;messages&quot;: [
+		{ &quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;How do I use useState in React?&quot; }
+	]
+}
+</code></pre>
+<p><strong>Output:</strong></p>
+<pre><code class="language-json">{
+	&quot;agent&quot;: &quot;rag&quot;,
+	&quot;query&quot;: &quot;How to use useState hook in React&quot;
+}
+</code></pre>
+<hr>
+<h2>The Text-Based Approach</h2>
+<p>We&#39;ll start with the simplest approach: ask the LLM to return text in a specific format, then parse it.</p>
+<p><strong>Pros:</strong></p>
+<ul>
+<li>✅ Simple to understand and debug</li>
+<li>✅ Easy to see what the LLM returns (just read the text)</li>
+<li>✅ Works reliably with clear prompts</li>
+<li>✅ No extra dependencies</li>
+<li>✅ Good for learning and prototyping</li>
+</ul>
+<p><strong>Cons:</strong></p>
+<ul>
+<li>❌ Manual string parsing (can be brittle)</li>
+<li>❌ No type safety</li>
+<li>❌ LLM might not always follow format exactly</li>
+<li>❌ Extra error handling needed</li>
+</ul>
+<hr>
+<h2>Understanding the Setup</h2>
+<p>The route already has some helpers:</p>
+<pre><code class="language-typescript">// Take last 5 messages for context
+const recentMessages = messages.slice(-5);
+
+// Build agent descriptions from config
+const agentDescriptions = Object.entries(agentConfigs)
+	.map(([key, config]) =&gt; `- &quot;${key}&quot;: ${config.description}`)
+	.join(&#39;\n&#39;);
+</code></pre>
+<p><strong>Why last 5 messages?</strong></p>
+<ul>
+<li>Provides conversation context without overwhelming the prompt</li>
+<li>Captures follow-up questions (e.g., &quot;How about the state one?&quot; referring to earlier &quot;React hooks&quot; discussion)</li>
+<li>Balances context vs token cost</li>
+</ul>
+<p><strong>The <code>.slice(-5)</code> trick:</strong></p>
+<pre><code class="language-typescript">[1, 2, 3]
+	.slice(-5) // [1, 2, 3] (all, since &lt; 5)
+	[(1, 2, 3, 4, 5, 6)].slice(-5); // [2, 3, 4, 5, 6] (last 5)
+</code></pre>
+<hr>
+<h2>Your Challenge: Implement the Selector</h2>
+<p>Now it&#39;s your turn! Follow these steps to implement the text-based selector.</p>
+<h3>Step 1: Call OpenAI</h3>
+<p>Replace the first TODO block in <code>app/api/select-agent/route.ts</code> with an OpenAI call.</p>
+<p><strong>Requirements:</strong></p>
+<ul>
+<li>Use <code>gpt-4o-mini</code> model (fast and cheap for classification)</li>
+<li>System prompt should:<ul>
+<li>Explain you&#39;re an agent router</li>
+<li>List available agents using <code>agentDescriptions</code></li>
+<li>Ask for a specific text format: <code>AGENT: [name]\nQUERY: [refined query]</code></li>
+</ul>
+</li>
+<li>Include <code>recentMessages</code> for context</li>
+</ul>
+<p><strong>Hints:</strong></p>
+<pre><code class="language-typescript">const completion = await openaiClient.chat.completions.create({
+	model: &#39;gpt-4o-mini&#39;,
+	messages: [
+		{
+			role: &#39;system&#39;,
+			content: `You are an agent router...
+Available agents:
+${agentDescriptions}
+Respond in this exact format:
+AGENT: [agent_name]
+QUERY: [refined query without conversational fluff]`,
+		},
+		// Add recent messages here
+	],
+});
+</code></pre>
+<h3>Step 2: Parse the Text Response</h3>
+<p>Extract the agent and query from the LLM&#39;s text response.</p>
+<p><strong>Requirements:</strong></p>
+<ul>
+<li>Get the content from <code>completion.choices[0]?.message?.content</code></li>
+<li>Split by newlines to get individual lines</li>
+<li>Find the line starting with &quot;AGENT:&quot;</li>
+<li>Find the line starting with &quot;QUERY:&quot;</li>
+<li>Extract the values after the colons</li>
+</ul>
+<p><strong>Hints:</strong></p>
+<pre><code class="language-typescript">const lines = content.split(&#39;\n&#39;);
+const agentLine = lines.find((line) =&gt; line.startsWith(&#39;AGENT:&#39;));
+const queryLine = lines.find((line) =&gt; line.startsWith(&#39;QUERY:&#39;));
+
+const agent = agentLine?.split(&#39;:&#39;)[1]?.trim();
+const query = queryLine?.split(&#39;:&#39;)[1]?.trim();
+</code></pre>
+<h3>Step 3: Validate and Return</h3>
+<p>Add validation to handle edge cases.</p>
+<p><strong>Requirements:</strong></p>
+<ul>
+<li>Check if the agent exists in <code>agentConfigs</code></li>
+<li>If not found, default to <code>&#39;rag&#39;</code></li>
+<li>If query parsing fails, use the original user message</li>
+<li>Return a JSON response with <code>agent</code> and <code>query</code></li>
+</ul>
+<p><strong>Hints:</strong></p>
+<pre><code class="language-typescript">const validAgent =
+	agent &amp;&amp; agentConfigs[agent as keyof typeof agentConfigs] ? agent : &#39;rag&#39;;
+
+return NextResponse.json({
+	agent: validAgent,
+	query: query || messages[messages.length - 1]?.content || &#39;&#39;,
+});
+</code></pre>
+<hr>
+<h2>Testing Your Implementation</h2>
+<h3>Test 1: Start the Dev Server</h3>
+<pre><code class="language-bash">yarn dev
+</code></pre>
+<h3>Test 2: Simple RAG Query</h3>
+<pre><code class="language-bash">curl -X POST http://localhost:3000/api/select-agent \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{
+    &quot;messages&quot;: [
+      {
+        &quot;role&quot;: &quot;user&quot;,
+        &quot;content&quot;: &quot;How do I use useState in React?&quot;
+      }
+    ]
+  }&#39;
+</code></pre>
+<p><strong>Expected response:</strong></p>
+<pre><code class="language-json">{
+	&quot;agent&quot;: &quot;rag&quot;,
+	&quot;query&quot;: &quot;How to use useState hook in React&quot;
+}
+</code></pre>
+<p><strong>What to check:</strong></p>
+<ul>
+<li>✅ Agent is &quot;rag&quot; (technical documentation question)</li>
+<li>✅ Query is refined (removed &quot;How do I&quot; conversational language)</li>
+</ul>
+<h3>Test 3: LinkedIn Query</h3>
+<pre><code class="language-bash">curl -X POST http://localhost:3000/api/select-agent \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{
+    &quot;messages&quot;: [
+      {
+        &quot;role&quot;: &quot;user&quot;,
+        &quot;content&quot;: &quot;What should I write about on my LinkedIn profile?&quot;
+      }
+    ]
+  }&#39;
+</code></pre>
+<p><strong>Expected response:</strong></p>
+<pre><code class="language-json">{
+	&quot;agent&quot;: &quot;linkedin&quot;,
+	&quot;query&quot;: &quot;LinkedIn profile content ideas&quot;
+}
+</code></pre>
+<h3>Test 4: Context Understanding</h3>
+<pre><code class="language-bash">curl -X POST http://localhost:3000/api/select-agent \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{
+    &quot;messages&quot;: [
+      {
+        &quot;role&quot;: &quot;user&quot;,
+        &quot;content&quot;: &quot;Tell me about React hooks&quot;
+      },
+      {
+        &quot;role&quot;: &quot;assistant&quot;,
+        &quot;content&quot;: &quot;React hooks are functions that let you use state and lifecycle features...&quot;
+      },
+      {
+        &quot;role&quot;: &quot;user&quot;,
+        &quot;content&quot;: &quot;How about the state one?&quot;
+      }
+    ]
+  }&#39;
+</code></pre>
+<p><strong>The selector should:</strong></p>
+<ul>
+<li>Understand &quot;state one&quot; refers to &quot;useState&quot; from context</li>
+<li>Still route to RAG agent</li>
+<li>Refine query to &quot;React useState hook&quot;</li>
+</ul>
+<hr>
+<h2>Understanding Query Refinement</h2>
+<p><strong>Why refine queries?</strong></p>
+<p>User input often has conversational fluff that&#39;s not useful for retrieval:</p>
+<table>
+<thead>
+<tr>
+<th>Original User Query</th>
+<th>Refined Query (Selector Output)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>&quot;yo can you tell me how to use that useState thing?&quot;</td>
+<td>&quot;How to use useState hook&quot;</td>
+</tr>
+<tr>
+<td>&quot;What&#39;s the deal with React components?&quot;</td>
+<td>&quot;React components explanation&quot;</td>
+</tr>
+<tr>
+<td>&quot;I need help understanding props lol&quot;</td>
+<td>&quot;React props&quot;</td>
+</tr>
+</tbody></table>
+<p><strong>Benefits:</strong></p>
+<ul>
+<li>Better embedding matching in vector search</li>
+<li>Clearer intent for the agent</li>
+<li>Removes noise words (&quot;yo&quot;, &quot;lol&quot;, &quot;can you&quot;)</li>
+<li>More precise retrieval results</li>
+</ul>
+<hr>
+<h2>Why GPT-4o-mini for the Selector?</h2>
+<p><strong>Model comparison:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Cost (per 1M tokens)</th>
+<th>Speed</th>
+<th>Capability</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>gpt-4o</td>
+<td>$2.50</td>
+<td>Slow</td>
+<td>Best reasoning</td>
+</tr>
+<tr>
+<td>gpt-4o-mini</td>
+<td>$0.15</td>
+<td>Fast</td>
+<td>Good classification</td>
+</tr>
+<tr>
+<td>gpt-4-turbo</td>
+<td>$1.00</td>
+<td>Medium</td>
+<td>Balanced</td>
+</tr>
+</tbody></table>
+<p><strong>Why mini for selector?</strong></p>
+<ul>
+<li>✅ Routing is simple classification (not complex reasoning)</li>
+<li>✅ Faster response = better UX</li>
+<li>✅ Runs on every single message (cost adds up)</li>
+<li>✅ Mini is excellent at classification tasks</li>
+</ul>
+<p><strong>Cost example:</strong></p>
+<ul>
+<li>1,000 messages/day with selector</li>
+<li>~500 tokens per request</li>
+<li><strong>gpt-4o-mini:</strong> $0.075/day ($2.25/month)</li>
+<li><strong>gpt-4o:</strong> $1.25/day ($37.50/month)</li>
+</ul>
+<p>For a high-traffic app, this saves thousands of dollars!</p>
+<hr>
+<h2>Common Issues and Solutions</h2>
+<h3>Issue: Wrong Agent Selected</h3>
+<p><strong>Symptoms:</strong></p>
+<ul>
+<li>Technical questions going to LinkedIn agent</li>
+<li>Career questions going to RAG agent</li>
+</ul>
+<p><strong>Cause:</strong> Agent descriptions too vague</p>
+<p><strong>Solution:</strong> Update <code>app/agents/config.ts</code> with specific descriptions:</p>
+<pre><code class="language-typescript">// ❌ Too vague
+linkedin: {
+	description: &#39;For professional content&#39;;
+}
+
+// ✅ Specific
+linkedin: {
+	description: &#39;For questions about LinkedIn profiles, professional networking, career advice, and creating LinkedIn posts&#39;;
+}
+</code></pre>
+<h3>Issue: Query Not Refined</h3>
+<p><strong>Symptoms:</strong></p>
+<ul>
+<li>Query looks identical to user input</li>
+<li>Still has conversational words like &quot;hey&quot;, &quot;can you&quot;, &quot;please&quot;</li>
+</ul>
+<p><strong>Cause:</strong> Prompt doesn&#39;t emphasize refinement</p>
+<p><strong>Solution:</strong> Make it explicit in the system prompt:</p>
+<pre><code class="language-typescript">content: `...
+The query should be:
+- Clear and specific
+- Remove conversational words like &quot;hey&quot;, &quot;um&quot;, &quot;please&quot;
+- Focus on the core question
+- Use proper technical terms
+- Keep it concise (under 10 words when possible)`;
+</code></pre>
+<h3>Issue: Parsing Errors</h3>
+<p><strong>Symptoms:</strong></p>
+<pre><code>TypeError: Cannot read property &#39;split&#39; of undefined
+</code></pre>
+<p><strong>Cause:</strong> LLM didn&#39;t follow format exactly</p>
+<p><strong>Solutions:</strong></p>
+<ol>
+<li>Add more explicit format instructions</li>
+<li>Add defensive parsing:</li>
+</ol>
+<pre><code class="language-typescript">const agent = agentLine?.split(&#39;:&#39;)[1]?.trim() || &#39;rag&#39;;
+const query =
+	queryLine?.split(&#39;:&#39;)[1]?.trim() ||
+	messages[messages.length - 1]?.content ||
+	&#39;&#39;;
+</code></pre>
+<hr>
+<h2>Reference Solution</h2>
+<details>
+<summary>⚠️ Only look at this after attempting the exercise! Click to reveal the complete solution.</summary>
+
+<pre><code class="language-typescript">// TODO: Students should implement this themselves first!
+// This solution is provided for reference only after attempting the exercise.
+
+export async function POST(req: NextRequest) {
+	try {
+		const body = await req.json();
+		const parsed = selectAgentSchema.parse(body);
+		const { messages } = parsed;
+
+		const recentMessages = messages.slice(-5);
+		const agentDescriptions = Object.entries(agentConfigs)
+			.map(([key, config]) =&gt; `- &quot;${key}&quot;: ${config.description}`)
+			.join(&#39;\n&#39;);
+
+		// Step 1: Call OpenAI
+		const completion = await openaiClient.chat.completions.create({
+			model: &#39;gpt-4o-mini&#39;,
+			messages: [
+				{
+					role: &#39;system&#39;,
+					content: `You are an agent router...
+Available agents:
+${agentDescriptions}
+
+Respond in format:
+AGENT: [agent_name]
+QUERY: [refined query]`,
+				},
+				...recentMessages.map((msg) =&gt; ({ role: msg.role, content: msg.content })),
+			],
+		});
+
+		// Step 2: Parse response
+		const content = completion.choices[0]?.message?.content;
+		if (!content) throw new Error(&#39;No response from OpenAI&#39;);
+
+		const lines = content.split(&#39;\n&#39;);
+		const agent = lines.find((l) =&gt; l.startsWith(&#39;AGENT:&#39;))?.split(&#39;:&#39;)[1]?.trim();
+		const query = lines.find((l) =&gt; l.startsWith(&#39;QUERY:&#39;))?.split(&#39;:&#39;)[1]?.trim();
+
+		// Step 3: Validate and return
+		const validAgent = agent &amp;&amp; agentConfigs[agent as keyof typeof agentConfigs] ? agent : &#39;rag&#39;;
+		return NextResponse.json({ agent: validAgent, query });
+	} catch (error) {
+		console.error(&#39;Error selecting agent:&#39;, error);
+		return NextResponse.json({ error: &#39;Failed to select agent&#39; }, { status: 500 });
+	}
+}
+</code></pre>
+</details>
+
+<hr>
+<h2>What You&#39;ve Learned</h2>
+<p>Now you understand:</p>
+<ul>
+<li>✅ How to build an agent selector with OpenAI</li>
+<li>✅ Text-based LLM responses and parsing</li>
+<li>✅ Query refinement for better retrieval</li>
+<li>✅ Why to use gpt-4o-mini for classification</li>
+<li>✅ Handling conversation context with message slicing</li>
+<li>✅ Fallback logic and error handling</li>
+</ul>
+<hr>
+<h2>What&#39;s Next</h2>
+<p>Great work! Your selector now routes requests using text parsing.</p>
+<p>In the next module, you&#39;ll learn how to upgrade this to use <strong>structured outputs</strong> with Zod schemas for guaranteed valid JSON responses every time.</p>
+<p><strong>Coming up:</strong></p>
+<ul>
+<li><strong>Module 7.3:</strong> Upgrading to Structured Outputs (more reliable, type-safe)</li>
+<li><strong>Module 8:</strong> Building the LinkedIn Agent with fine-tuned models</li>
+<li><strong>Module 9:</strong> Building the RAG Agent with retrieval and context</li>
+</ul>

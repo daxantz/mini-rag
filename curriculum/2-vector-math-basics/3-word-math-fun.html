@@ -1,0 +1,252 @@
+<h1>Word Math: Vectors in Action</h1>
+<p>Let&#39;s have some fun and really drive home that words are just vectors!</p>
+<hr>
+<h2>Video Walkthrough</h2>
+<p>Watch this fun exploration of word arithmetic:</p>
+<iframe src="https://share.descript.com/embed/gz3NfK2kCMl" width="640" height="360" frameborder="0" allowfullscreen></iframe>
+
+<hr>
+<h2>The Magic of Word Arithmetic</h2>
+<p>Remember: embeddings place similar words close together in vector space. This means we can do <strong>math with words</strong>!</p>
+<hr>
+<h2>The Classic Example</h2>
+<pre><code>king - man + woman ≈ queen
+</code></pre>
+<p><strong>Why it works:</strong></p>
+<pre><code>&quot;king&quot; embedding contains:
+  - Royalty concept
+  - Male concept
+  - Power concept
+
+Subtract &quot;man&quot;:
+  - Removes male concept
+
+Add &quot;woman&quot;:
+  - Adds female concept
+
+Result:
+  - Royalty + Female ≈ &quot;queen&quot;!
+</code></pre>
+<hr>
+<h2>Exercise: Try Word Math</h2>
+<h3>Setup</h3>
+<p>The exercise is already set up for you at: <code>app/scripts/exercises/vector-word-arithmetic.ts</code></p>
+<pre><code class="language-typescript">import { openaiClient } from &#39;../libs/openai/openai&#39;;
+
+async function getEmbedding(text: string): Promise&lt;number[]&gt; {
+	const response = await openaiClient.embeddings.create({
+		model: &#39;text-embedding-3-small&#39;,
+		input: text,
+	});
+	return response.data[0].embedding;
+}
+
+function addVectors(a: number[], b: number[]): number[] {
+	return a.map((val, i) =&gt; val + b[i]);
+}
+
+function subtractVectors(a: number[], b: number[]): number[] {
+	return a.map((val, i) =&gt; val - b[i]);
+}
+
+async function findClosestWord(
+	targetVector: number[],
+	candidateWords: string[]
+): Promise&lt;{ word: string; similarity: number }&gt; {
+	// Get embeddings for all candidates
+	const candidateEmbeddings = await Promise.all(
+		candidateWords.map(async (word) =&gt; ({
+			word,
+			embedding: await getEmbedding(word),
+		}))
+	);
+
+	// Find most similar
+	let best = { word: &#39;&#39;, similarity: -1 };
+	for (const candidate of candidateEmbeddings) {
+		const sim = cosineSimilarity(targetVector, candidate.embedding);
+		if (sim &gt; best.similarity) {
+			best = { word: candidate.word, similarity: sim };
+		}
+	}
+
+	return best;
+}
+</code></pre>
+<h3>Try These Equations</h3>
+<pre><code class="language-typescript">async function wordMathExamples() {
+	// Example 1: king - man + woman ≈ queen
+	console.log(&#39;\n🔮 Example 1: king - man + woman&#39;);
+	const king = await getEmbedding(&#39;king&#39;);
+	const man = await getEmbedding(&#39;man&#39;);
+	const woman = await getEmbedding(&#39;woman&#39;);
+
+	const result1 = addVectors(subtractVectors(king, man), woman);
+
+	const answer1 = await findClosestWord(result1, [
+		&#39;queen&#39;,
+		&#39;princess&#39;,
+		&#39;prince&#39;,
+		&#39;duke&#39;,
+		&#39;emperor&#39;,
+	]);
+
+	console.log(`Answer: ${answer1.word} (${answer1.similarity.toFixed(3)})`);
+	// Expected: queen
+
+	// Example 2: Paris - France + Italy ≈ Rome
+	console.log(&#39;\n🔮 Example 2: Paris - France + Italy&#39;);
+	const paris = await getEmbedding(&#39;Paris&#39;);
+	const france = await getEmbedding(&#39;France&#39;);
+	const italy = await getEmbedding(&#39;Italy&#39;);
+
+	const result2 = addVectors(subtractVectors(paris, france), italy);
+
+	const answer2 = await findClosestWord(result2, [
+		&#39;Rome&#39;,
+		&#39;Milan&#39;,
+		&#39;Venice&#39;,
+		&#39;Florence&#39;,
+		&#39;Naples&#39;,
+	]);
+
+	console.log(`Answer: ${answer2.word} (${answer2.similarity.toFixed(3)})`);
+	// Expected: Rome
+
+	// Example 3: walking - walk + swim ≈ swimming
+	console.log(&#39;\n🔮 Example 3: walking - walk + swim&#39;);
+	const walking = await getEmbedding(&#39;walking&#39;);
+	const walk = await getEmbedding(&#39;walk&#39;);
+	const swim = await getEmbedding(&#39;swim&#39;);
+
+	const result3 = addVectors(subtractVectors(walking, walk), swim);
+
+	const answer3 = await findClosestWord(result3, [
+		&#39;swimming&#39;,
+		&#39;swam&#39;,
+		&#39;swimmer&#39;,
+		&#39;swims&#39;,
+		&#39;diving&#39;,
+	]);
+
+	console.log(`Answer: ${answer3.word} (${answer3.similarity.toFixed(3)})`);
+	// Expected: swimming
+}
+
+// Run it!
+wordMathExamples();
+</code></pre>
+<h3>Run the Exercise</h3>
+<pre><code class="language-bash">yarn exercise:word-math
+</code></pre>
+<p>This runs the complete script at <code>app/scripts/exercises/vector-word-arithmetic.ts</code></p>
+<p><strong>Expected output:</strong></p>
+<pre><code>🔮 Example 1: king - man + woman
+Answer: queen (0.892)
+
+🔮 Example 2: Paris - France + Italy
+Answer: Rome (0.847)
+
+🔮 Example 3: walking - walk + swim
+Answer: swimming (0.923)
+</code></pre>
+<hr>
+<h2>Create Your Own Equations</h2>
+<p>Try these patterns:</p>
+<h3>Country → Capital</h3>
+<pre><code class="language-typescript">// Tokyo - Japan + Germany ≈ ?
+// Berlin!
+</code></pre>
+<h3>Adjective → Noun</h3>
+<pre><code class="language-typescript">// biggest - big + small ≈ ?
+// smallest!
+</code></pre>
+<h3>Verb Tenses</h3>
+<pre><code class="language-typescript">// running - run + eat ≈ ?
+// eating!
+</code></pre>
+<h3>Company → Product</h3>
+<pre><code class="language-typescript">// iPhone - Apple + Microsoft ≈ ?
+// Windows? Surface?
+</code></pre>
+<hr>
+<h2>What This Proves</h2>
+<p><strong>Words are truly just vectors!</strong></p>
+<ul>
+<li>Semantics encoded as numbers</li>
+<li>Relationships preserved in space</li>
+<li>Math operations make sense</li>
+<li>Similar meanings = similar vectors</li>
+</ul>
+<p>This is why RAG works:</p>
+<ol>
+<li>User query → vector</li>
+<li>Documents → vectors</li>
+<li>Find closest vectors</li>
+<li>Return matching documents</li>
+</ol>
+<p>The math handles the &quot;understanding&quot;!</p>
+<hr>
+<h2>Challenge: Build Your Own</h2>
+<p>Create 3 word equations and test them:</p>
+<pre><code class="language-typescript">async function myEquations() {
+	// Your equation 1:
+	// ...
+	// Your equation 2:
+	// ...
+	// Your equation 3:
+	// ...
+}
+</code></pre>
+<p><strong>Ideas:</strong></p>
+<ul>
+<li>Plurals: dog - dogs + cat ≈ ?</li>
+<li>Opposites: hot - cold + loud ≈ ?</li>
+<li>Professions: doctor - hospital + school ≈ ?</li>
+</ul>
+<hr>
+<h2>Why This Matters for RAG</h2>
+<p>Understanding word math helps you understand RAG:</p>
+<p><strong>When user asks:</strong> &quot;How do I use React hooks?&quot;</p>
+<p><strong>The system:</strong></p>
+<ol>
+<li>Converts query to vector</li>
+<li>That vector is &quot;near&quot; vectors for:<ul>
+<li>&quot;React useState tutorial&quot;</li>
+<li>&quot;Understanding React hooks&quot;</li>
+<li>&quot;Hooks in React&quot;</li>
+</ul>
+</li>
+<li>But &quot;far&quot; from:<ul>
+<li>&quot;Python data science&quot;</li>
+<li>&quot;CSS styling tips&quot;</li>
+</ul>
+</li>
+</ol>
+<p><strong>Result:</strong> Relevant documents retrieved!</p>
+<hr>
+<h2>Homework Assignment: Week 1</h2>
+<p><strong>Video Assignment:</strong> Record a <strong>2-3 minute video</strong> explaining the <strong>dot product</strong> to a beginner who is interested in AI but has no math background.</p>
+<p><strong>Requirements:</strong></p>
+<ul>
+<li>Explain what a dot product is in simple terms</li>
+<li>Use a real-world analogy (shopping preferences, recipe similarity, etc.)</li>
+<li>Connect it to how AI &quot;understands&quot; similarity between words</li>
+<li>Show or reference your word math experiments from this module</li>
+</ul>
+<p><strong>Tips:</strong></p>
+<ul>
+<li>Think about the 3Blue1Brown video you watched</li>
+<li>Avoid heavy mathematical notation</li>
+<li>Focus on intuition over formulas</li>
+</ul>
+<p><strong>Submit Your Work:</strong></p>
+<ul>
+<li><a href="https://form.typeform.com/to/NdVcsThQ">Video Submission - Week 1</a></li>
+<li><a href="https://form.typeform.com/to/A0pGKPqU">Code Submission - Week 1</a> (include link to your word math experiments)</li>
+</ul>
+<p><strong>Due:</strong> Before Module 4</p>
+<p><strong>Why This Matters:</strong> Teaching is the best way to learn. If you can explain dot products simply, you deeply understand the foundation of RAG and semantic search.</p>
+<hr>
+<h2>What&#39;s Next</h2>
+<p>You now understand the math! Time to build the actual Pinecone integration.</p>

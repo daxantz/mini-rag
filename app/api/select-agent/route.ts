@@ -28,22 +28,8 @@ export async function POST(req: NextRequest) {
 			.map(([key, config]) => `- "${key}": ${config.description}`)
 			.join('\n');
 
-		// TODO: Step 1 - Call OpenAI with structured output
-		// Use openaiClient.responses.parse()
-		// Model: 'gpt-4o-mini'
-		// Input: array of messages with:
-		//   - System message explaining you're an agent router
-		//   - Include agentDescriptions in the system message
-		//   - ...recentMessages (spread the user's messages)
-		// Text format: use zodTextFormat(agentSelectionSchema, 'agentSelection')
-
-		// TODO: Step 2 - Extract the parsed output
-		// The response has an output_parsed field
-		// This will contain { agent, query }
-
-		// TODO: Step 3 - Return the result
-		// If output has both agent and query, return them
-		// Otherwise, return a fallback: { agent: 'rag', query: last message content }
+		// TODO: Implement the selector agent
+		// Follow the curriculum instructions to complete this implementation
 
 		throw new Error('Selector not implemented yet!');
 	} catch (error) {
