@@ -46,6 +46,22 @@ Result:
 
 ## Exercise: Try Word Math
 
+### Important: Use Cached Words
+
+To save API costs, we've pre-cached embeddings for specific words. **Use these words in your experiments** - they won't require OpenAI API calls:
+
+```
+king, man, woman, queen, princess, empress, lady, ruler, monarch,
+boyfriend, commitment, freedom, fuckboy, player, bachelor, single, flirt, hookup,
+engineer, humility, ego, founder, CEO, entrepreneur, startup, techbro, disruptor,
+Twitter, sanity, chaos, X, 4chan, Reddit, TikTok, hellscape, dumpsterfire,
+intern, enthusiasm, cynicism, manager, executive, burnout, veteran, survivor, director,
+dating, authenticity, filters, catfish, Instagram, facade, performance, theater, illusion,
+pizza, accountant, banana, library, sunshine, broccoli
+```
+
+If you use words outside this list, they'll work but will call the OpenAI API (costs money).
+
 ### Setup
 
 The exercise is already set up for you at: `app/scripts/exercises/vector-word-arithmetic.ts`

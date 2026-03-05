@@ -1,16 +1,43 @@
-<h2>Capstone Project: Multi-Source RAG System</h2>
-<p>Extend the existing RAG project by adding <strong>one additional data source</strong>, indexed separately and handled by a <strong>new agent</strong>.</p>
+<h2>Capstone Project: Build Your RAG System</h2>
+<p>For your capstone, you have two options:</p>
+<p><strong>Option A:</strong> Extend the existing RAG project by adding a new data source and agent</p>
+<p><strong>Option B:</strong> Build your own RAG system from scratch</p>
+<p>Both options are equally valid. Choose what excites you most.</p>
+<hr>
+<h2>Flexibility &amp; Experimentation</h2>
+<p>We encourage you to experiment! You are not limited to the tools we used in class:</p>
+<ul>
+<li><strong>Any programming language</strong> - Python, Go, Rust, Java, whatever you prefer</li>
+<li><strong>Any vector database</strong> - Pinecone, Qdrant, Weaviate, Chroma, pgvector, etc.</li>
+<li><strong>Any LLM provider</strong> - OpenAI, Anthropic, Cohere, local models, etc.</li>
+<li><strong>Any framework</strong> - LangChain, LlamaIndex, Haystack, or build from scratch</li>
+</ul>
+<p><strong>The only requirement:</strong> Document your choices and explain why you made them.</p>
 <hr>
 <h2>Week 4: Project Proposal</h2>
 <p>Before building, submit a proposal outlining your plan.</p>
 <p><strong>Video Assignment:</strong> Record a <strong>2-3 minute video</strong> explaining your project plan.</p>
 <p><strong>Your proposal should cover:</strong></p>
 <ol>
+<li><p><strong>Project Scope:</strong></p>
+<ul>
+<li>Are you extending the class project or building from scratch?</li>
+<li>What problem are you solving?</li>
+</ul>
+</li>
 <li><p><strong>Data Source:</strong></p>
 <ul>
-<li>What data will you add? (articles, docs, posts, etc.)</li>
+<li>What data will you use? (articles, docs, posts, etc.)</li>
 <li>Where will you get it? (public API, scraping, dataset)</li>
 <li>Why did you choose this data?</li>
+</ul>
+</li>
+<li><p><strong>Technical Choices:</strong></p>
+<ul>
+<li>What language/framework are you using?</li>
+<li>What vector database did you choose and why?</li>
+<li>What LLM provider are you using?</li>
+<li>Any other libraries or tools you&#39;re experimenting with?</li>
 </ul>
 </li>
 <li><p><strong>Chunking Strategy:</strong></p>
@@ -20,11 +47,10 @@
 <li>Any special considerations for this data type?</li>
 </ul>
 </li>
-<li><p><strong>Agent Design:</strong></p>
+<li><p><strong>Architecture:</strong></p>
 <ul>
-<li>What will your new agent do?</li>
-<li>How should the router decide when to use it?</li>
-<li>What kind of queries should trigger this agent?</li>
+<li>How will your system work at a high level?</li>
+<li>If using agents, how will routing work?</li>
 </ul>
 </li>
 </ol>
@@ -36,57 +62,46 @@
 <p><strong>Due:</strong> Before starting implementation</p>
 <hr>
 <h2>Requirements</h2>
-<h3>Data</h3>
+<h3>Core Requirements (All Projects)</h3>
 <ul>
-<li>Add <strong>one new data source</strong> of your choice<br>(articles, blog posts, docs, repos, posts, etc.)</li>
-<li>Create a <strong>new vector index</strong> for this data</li>
-<li>Data must be:<ul>
-<li>Public</li>
-<li>Properly chunked</li>
-<li>Embedded and uploaded successfully</li>
+<li>Working RAG system that retrieves relevant context and generates responses</li>
+<li>Proper chunking strategy for your data</li>
+<li>Vector embeddings stored in a vector database</li>
+<li>Working demo with example queries</li>
 </ul>
-</li>
-</ul>
-<hr>
-<h3>Agents</h3>
+<h3>If Extending the Class Project</h3>
 <ul>
-<li>Add <strong>one new agent</strong> responsible for the new data source</li>
+<li>Add one new data source</li>
+<li>Create a new vector index for this data</li>
+<li>Add one new agent responsible for the new data source</li>
 <li>Update routing so the correct agent is selected</li>
-<li>The new agent must:<ul>
-<li>Query the new index</li>
-<li>Return grounded, relevant responses</li>
 </ul>
-</li>
-</ul>
-<hr>
-<h3>Testing</h3>
+<h3>If Building From Scratch</h3>
 <ul>
-<li>Add tests that verify:<ul>
-<li>The new agent is selected correctly</li>
-<li>Retrieval works for the new data source</li>
-<li>Existing functionality is not broken</li>
-</ul>
-</li>
+<li>Document your architecture decisions</li>
+<li>Explain why you chose your tech stack</li>
+<li>Show how your system handles retrieval and generation</li>
 </ul>
 <hr>
 <h3>Documentation</h3>
 <p>Your <code>README.md</code> must explain:</p>
 <ul>
-<li>What data you added and how you collected it</li>
-<li>How the new index is structured</li>
-<li>What the new agent does</li>
-<li>How routing works at a high level</li>
+<li>What your project does</li>
+<li>Your tech stack and why you chose it</li>
+<li>How to run the project</li>
+<li>Your chunking strategy</li>
+<li>Example queries and expected behavior</li>
 </ul>
 <hr>
 <h2>Week 5: Final Submission</h2>
 <p><strong>Video Assignment:</strong> Record a <strong>3-5 minute video</strong> demonstrating your completed RAG system.</p>
 <p><strong>Your video should show:</strong></p>
 <ol>
-<li>The original system working</li>
-<li>Your new data source and how you collected it</li>
-<li>The new agent in action</li>
-<li>Example queries that hit the new index</li>
-<li>Brief explanation of your design decisions</li>
+<li>Your RAG system in action</li>
+<li>Your data source and how you collected/processed it</li>
+<li>Example queries demonstrating retrieval quality</li>
+<li>Brief explanation of your technical choices</li>
+<li>Any challenges you faced and how you solved them</li>
 </ol>
 <p><strong>Submit Your Final Project:</strong></p>
 <ul>
@@ -97,13 +112,14 @@
 <h2>Evaluation Criteria</h2>
 <ul>
 <li>Correct use of embeddings and chunking</li>
-<li>Clear separation of indexes and agents</li>
+<li>Working retrieval and generation pipeline</li>
 <li>Clean, readable code</li>
 <li>Clear explanation of design decisions</li>
 <li>Working demo with example queries</li>
+<li>Thoughtful documentation of technical choices</li>
 </ul>
 <hr>
 <h3>Guiding Principle</h3>
 <blockquote>
-<p><strong>One new data source. One new index. One new agent. Explain why.</strong></p>
+<p><strong>Build something that works. Explain your choices. Show us what you learned.</strong></p>
 </blockquote>

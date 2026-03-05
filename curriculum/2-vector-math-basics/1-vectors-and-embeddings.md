@@ -204,12 +204,22 @@ const similarities = docEmbeddings.map((docEmbed) =>
 
 For beautiful visual explanations:
 
+**AI Accelerator Compendium (Interactive Guides):**
+
+- [Vectors](https://projectshft.github.io/ai-accelerator-compendium/vectors.html) - Interactive visualization of vectors and their properties
+- [Dot Products](https://projectshft.github.io/ai-accelerator-compendium/dot-products.html) - Visual explanation of dot products and similarity
+
+**Bonus - Dive Deeper:**
+- [LLMs](https://projectshft.github.io/ai-accelerator-compendium/llms.html) - How large language models work
+- [Transformers](https://projectshft.github.io/ai-accelerator-compendium/transformers.html) - The architecture behind modern AI
+- [Attention](https://projectshft.github.io/ai-accelerator-compendium/attention.html) - Understanding attention mechanisms
+
 **3Blue1Brown's Linear Algebra Series:**
 
 1. [Vectors, what even are they?](https://www.youtube.com/watch?v=fNk_zzaMoSs)
 2. [Dot products and duality](https://www.youtube.com/watch?v=LyGKycYT2v0)
 
-These videos make the concepts crystal clear!
+These resources make the concepts crystal clear!
 
 ---
 
@@ -239,35 +249,6 @@ Which pairs would have high cosine similarity?
 ✅ Similar text → similar vectors
 ✅ Cosine similarity measures angle between vectors
 ✅ This is how RAG finds relevant documents
-
----
-
-## Homework Assignment: Explain Dot Products for LLMs
-
-**Assignment:** Create a short video (3-5 minutes) or written explanation answering:
-
-**"Explain the dot product to a non-math person who is interested in LLMs and why the dot product matters to LLMs."**
-
-**Requirements:**
-- Avoid heavy mathematical notation
-- Use analogies and visual examples
-- Explain why dot products are foundational to embeddings
-- Connect it to how LLMs understand similarity
-- Include at least one concrete example
-
-**Tips:**
-- Think about the 3Blue1Brown video you watched (dot products as projection)
-- Use real-world analogies (shopping preferences, recipe similarity, etc.)
-- Show how higher dot product = more similar meanings
-- Explain why we use cosine similarity (normalized dot product)
-
-**What to Submit:**
-- Video link (YouTube/Loom) OR
-- Written explanation (500-800 words) with diagrams/examples
-
-**Due:** Before starting Module 4
-
-**Why This Matters:** Teaching is the best way to learn. If you can explain dot products simply, you deeply understand the foundation of RAG.
 
 ---
 

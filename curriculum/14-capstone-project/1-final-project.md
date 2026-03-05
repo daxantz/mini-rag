@@ -1,6 +1,25 @@
-## Capstone Project: Multi-Source RAG System
+## Capstone Project: Build Your RAG System
 
-Extend the existing RAG project by adding **one additional data source**, indexed separately and handled by a **new agent**.
+For your capstone, you have two options:
+
+**Option A:** Extend the existing RAG project by adding a new data source and agent
+
+**Option B:** Build your own RAG system from scratch
+
+Both options are equally valid. Choose what excites you most.
+
+---
+
+## Flexibility & Experimentation
+
+We encourage you to experiment! You are not limited to the tools we used in class:
+
+- **Any programming language** - Python, Go, Rust, Java, whatever you prefer
+- **Any vector database** - Pinecone, Qdrant, Weaviate, Chroma, pgvector, etc.
+- **Any LLM provider** - OpenAI, Anthropic, Cohere, local models, etc.
+- **Any framework** - LangChain, LlamaIndex, Haystack, or build from scratch
+
+**The only requirement:** Document your choices and explain why you made them.
 
 ---
 
@@ -12,20 +31,29 @@ Before building, submit a proposal outlining your plan.
 
 **Your proposal should cover:**
 
-1. **Data Source:**
-   - What data will you add? (articles, docs, posts, etc.)
+1. **Project Scope:**
+   - Are you extending the class project or building from scratch?
+   - What problem are you solving?
+
+2. **Data Source:**
+   - What data will you use? (articles, docs, posts, etc.)
    - Where will you get it? (public API, scraping, dataset)
    - Why did you choose this data?
 
-2. **Chunking Strategy:**
+3. **Technical Choices:**
+   - What language/framework are you using?
+   - What vector database did you choose and why?
+   - What LLM provider are you using?
+   - Any other libraries or tools you're experimenting with?
+
+4. **Chunking Strategy:**
    - How will you chunk this content?
    - What chunk size and overlap make sense?
    - Any special considerations for this data type?
 
-3. **Agent Design:**
-   - What will your new agent do?
-   - How should the router decide when to use it?
-   - What kind of queries should trigger this agent?
+5. **Architecture:**
+   - How will your system work at a high level?
+   - If using agents, how will routing work?
 
 **Submit Your Proposal:**
 - [Video Submission - Week 4](https://form.typeform.com/to/Z9JApCkF)
@@ -37,40 +65,32 @@ Before building, submit a proposal outlining your plan.
 
 ## Requirements
 
-### Data
-- Add **one new data source** of your choice
-  (articles, blog posts, docs, repos, posts, etc.)
-- Create a **new vector index** for this data
-- Data must be:
-  - Public
-  - Properly chunked
-  - Embedded and uploaded successfully
+### Core Requirements (All Projects)
+- Working RAG system that retrieves relevant context and generates responses
+- Proper chunking strategy for your data
+- Vector embeddings stored in a vector database
+- Working demo with example queries
 
----
-
-### Agents
-- Add **one new agent** responsible for the new data source
+### If Extending the Class Project
+- Add one new data source
+- Create a new vector index for this data
+- Add one new agent responsible for the new data source
 - Update routing so the correct agent is selected
-- The new agent must:
-  - Query the new index
-  - Return grounded, relevant responses
 
----
-
-### Testing
-- Add tests that verify:
-  - The new agent is selected correctly
-  - Retrieval works for the new data source
-  - Existing functionality is not broken
+### If Building From Scratch
+- Document your architecture decisions
+- Explain why you chose your tech stack
+- Show how your system handles retrieval and generation
 
 ---
 
 ### Documentation
 Your `README.md` must explain:
-- What data you added and how you collected it
-- How the new index is structured
-- What the new agent does
-- How routing works at a high level
+- What your project does
+- Your tech stack and why you chose it
+- How to run the project
+- Your chunking strategy
+- Example queries and expected behavior
 
 ---
 
@@ -79,11 +99,11 @@ Your `README.md` must explain:
 **Video Assignment:** Record a **3-5 minute video** demonstrating your completed RAG system.
 
 **Your video should show:**
-1. The original system working
-2. Your new data source and how you collected it
-3. The new agent in action
-4. Example queries that hit the new index
-5. Brief explanation of your design decisions
+1. Your RAG system in action
+2. Your data source and how you collected/processed it
+3. Example queries demonstrating retrieval quality
+4. Brief explanation of your technical choices
+5. Any challenges you faced and how you solved them
 
 **Submit Your Final Project:**
 - [Video Submission - Week 5](https://form.typeform.com/to/SF6b6edL)
@@ -93,12 +113,13 @@ Your `README.md` must explain:
 
 ## Evaluation Criteria
 - Correct use of embeddings and chunking
-- Clear separation of indexes and agents
+- Working retrieval and generation pipeline
 - Clean, readable code
 - Clear explanation of design decisions
 - Working demo with example queries
+- Thoughtful documentation of technical choices
 
 ---
 
 ### Guiding Principle
-> **One new data source. One new index. One new agent. Explain why.**
+> **Build something that works. Explain your choices. Show us what you learned.**

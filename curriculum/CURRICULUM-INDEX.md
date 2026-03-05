@@ -16,6 +16,9 @@ This document provides a complete overview of the course structure, including al
 
 **📂 Location:** `week-0-setup/PRE-COURSE-HOMEWORK.md`
 
+### Visual Learning Resource
+- 🔗 [AI Accelerator Compendium](https://projectshft.github.io/ai-accelerator-compendium/) - Interactive visual guides covering vectors, dot products, LLMs, transformers, and attention
+
 ### Part 1: Linear Algebra Foundations (90 min)
 - ✅ Vectors - What are they?
 - ✅ Linear combinations, span, basis vectors

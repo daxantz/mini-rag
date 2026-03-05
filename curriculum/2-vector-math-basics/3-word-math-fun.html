@@ -29,6 +29,17 @@ Result:
 </code></pre>
 <hr>
 <h2>Exercise: Try Word Math</h2>
+<h3>Important: Use Cached Words</h3>
+<p>To save API costs, we&#39;ve pre-cached embeddings for specific words. <strong>Use these words in your experiments</strong> - they won&#39;t require OpenAI API calls:</p>
+<pre><code>king, man, woman, queen, princess, empress, lady, ruler, monarch,
+boyfriend, commitment, freedom, fuckboy, player, bachelor, single, flirt, hookup,
+engineer, humility, ego, founder, CEO, entrepreneur, startup, techbro, disruptor,
+Twitter, sanity, chaos, X, 4chan, Reddit, TikTok, hellscape, dumpsterfire,
+intern, enthusiasm, cynicism, manager, executive, burnout, veteran, survivor, director,
+dating, authenticity, filters, catfish, Instagram, facade, performance, theater, illusion,
+pizza, accountant, banana, library, sunshine, broccoli
+</code></pre>
+<p>If you use words outside this list, they&#39;ll work but will call the OpenAI API (costs money).</p>
 <h3>Setup</h3>
 <p>The exercise is already set up for you at: <code>app/scripts/exercises/vector-word-arithmetic.ts</code></p>
 <pre><code class="language-typescript">import { openaiClient } from &#39;../libs/openai/openai&#39;;
