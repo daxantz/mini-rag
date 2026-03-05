@@ -462,6 +462,41 @@ async function demonstrateWordArithmetic() {
     );
   });
   console.log("");
+
+  // Example 11: Food math
+  console.log("🥦 FOOD EXAMPLE: Vegetable Math");
+  console.log("Formula: broccoli - banana + pizza ≈ ?");
+
+  const [broccoliVec, bananaVec, pizzaVec] = await Promise.all([
+    getEmbedding("broccoli"),
+    getEmbedding("banana"),
+    getEmbedding("pizza"),
+  ]);
+
+  const result11 = addVectors(
+    subtractVectors(broccoliVec, bananaVec),
+    pizzaVec,
+  );
+  const candidates11 = [
+    "hookup",
+    "flirt",
+    "player",
+    "single",
+    "bachelor",
+    "sunshine", // obviously wrong - should have low similarity
+  ];
+  const matches11 = await findClosestWord(result11, candidates11);
+
+  console.log("Top matches:");
+  matches11.forEach((match, i) => {
+    const emoji = i === matches11.length - 1 ? "❌" : "✅";
+    console.log(
+      `${emoji} ${i + 1}. ${match.word} (similarity: ${match.similarity.toFixed(
+        3,
+      )})`,
+    );
+  });
+  console.log("");
 }
 
 // Run the demonstration
