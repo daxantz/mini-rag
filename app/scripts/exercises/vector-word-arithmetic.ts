@@ -318,6 +318,172 @@ async function demonstrateWordArithmetic() {
 	console.log('• influencer - talent + followers ≈ ?');
 
 	//TODO: create your own examples and run them to gain some intuition on how vector math works
+
+	// Example 7: Royalty reversal
+	console.log('👑 ROYALTY EXAMPLE: The Reverse Analog');
+	console.log('Formula: empress - woman + man ≈ ?');
+
+	const [empressVec, womanVec2, manVec2] = await Promise.all([
+		getEmbedding('empress'),
+		getEmbedding('woman'),
+		getEmbedding('man'),
+	]);
+
+	const result7 = addVectors(subtractVectors(empressVec, womanVec2), manVec2);
+	const candidates7 = [
+		'king',
+		'monarch',
+		'ruler',
+		'bachelor',
+		'founder',
+		'CEO',
+		'banana', // obviously wrong - should have low similarity
+	];
+	const matches7 = await findClosestWord(result7, candidates7);
+
+	console.log('Top matches:');
+	matches7.forEach((match, i) => {
+		const emoji = i === matches7.length - 1 ? '❌' : '✅';
+		console.log(
+			`${emoji} ${i + 1}. ${match.word} (similarity: ${match.similarity.toFixed(3)})`
+		);
+	});
+	console.log('');
+
+	// Example 8: The Instagram effect
+	console.log('📸 INSTAGRAM EXAMPLE: The Filter Effect');
+	console.log('Formula: Instagram - authenticity + filters ≈ ?');
+
+	const [instagramVec, authenticityVec2, filtersVec2] = await Promise.all([
+		getEmbedding('Instagram'),
+		getEmbedding('authenticity'),
+		getEmbedding('filters'),
+	]);
+
+	const result8 = addVectors(
+		subtractVectors(instagramVec, authenticityVec2),
+		filtersVec2
+	);
+	const candidates8 = [
+		'facade',
+		'illusion',
+		'performance',
+		'catfish',
+		'theater',
+		'TikTok',
+		'library', // obviously wrong - should have low similarity
+	];
+	const matches8 = await findClosestWord(result8, candidates8);
+
+	console.log('Top matches:');
+	matches8.forEach((match, i) => {
+		const emoji = i === matches8.length - 1 ? '❌' : '✅';
+		console.log(
+			`${emoji} ${i + 1}. ${match.word} (similarity: ${match.similarity.toFixed(3)})`
+		);
+	});
+	console.log('');
+
+	// Example 9: Startup reality check
+	console.log('🚀 STARTUP EXAMPLE: Reality Check');
+	console.log('Formula: startup - enthusiasm + cynicism ≈ ?');
+
+	const [startupVec, enthusiasmVec2, cynicismVec2] = await Promise.all([
+		getEmbedding('startup'),
+		getEmbedding('enthusiasm'),
+		getEmbedding('cynicism'),
+	]);
+
+	const result9 = addVectors(
+		subtractVectors(startupVec, enthusiasmVec2),
+		cynicismVec2
+	);
+	const candidates9 = [
+		'burnout',
+		'survivor',
+		'hellscape',
+		'veteran',
+		'chaos',
+		'dumpsterfire',
+		'sunshine', // obviously wrong - should have low similarity
+	];
+	const matches9 = await findClosestWord(result9, candidates9);
+
+	console.log('Top matches:');
+	matches9.forEach((match, i) => {
+		const emoji = i === matches9.length - 1 ? '❌' : '✅';
+		console.log(
+			`${emoji} ${i + 1}. ${match.word} (similarity: ${match.similarity.toFixed(3)})`
+		);
+	});
+	console.log('');
+
+	// Example 10: Relationship reversal
+	console.log('💍 RELATIONSHIP EXAMPLE: The Reverse');
+	console.log('Formula: fuckboy - freedom + commitment ≈ ?');
+
+	const [fuckboyVec, freedomVec2, commitmentVec2] = await Promise.all([
+		getEmbedding('fuckboy'),
+		getEmbedding('freedom'),
+		getEmbedding('commitment'),
+	]);
+
+	const result10 = addVectors(
+		subtractVectors(fuckboyVec, freedomVec2),
+		commitmentVec2
+	);
+	const candidates10 = [
+		'boyfriend',
+		'dating',
+		'single',
+		'bachelor',
+		'flirt',
+		'hookup',
+		'sunshine', // obviously wrong - should have low similarity
+	];
+	const matches10 = await findClosestWord(result10, candidates10);
+
+	console.log('Top matches:');
+	matches10.forEach((match, i) => {
+		const emoji = i === matches10.length - 1 ? '❌' : '✅';
+		console.log(
+			`${emoji} ${i + 1}. ${match.word} (similarity: ${match.similarity.toFixed(3)})`
+		);
+	});
+	console.log('');
+
+	// Example 11: Food math
+	console.log('🥦 FOOD EXAMPLE: Vegetable Math');
+	console.log('Formula: broccoli - banana + pizza ≈ ?');
+
+	const [broccoliVec, bananaVec, pizzaVec] = await Promise.all([
+		getEmbedding('broccoli'),
+		getEmbedding('banana'),
+		getEmbedding('pizza'),
+	]);
+
+	const result11 = addVectors(
+		subtractVectors(broccoliVec, bananaVec),
+		pizzaVec
+	);
+	const candidates11 = [
+		'hookup',
+		'flirt',
+		'player',
+		'single',
+		'bachelor',
+		'sunshine', // obviously wrong - should have low similarity
+	];
+	const matches11 = await findClosestWord(result11, candidates11);
+
+	console.log('Top matches:');
+	matches11.forEach((match, i) => {
+		const emoji = i === matches11.length - 1 ? '❌' : '✅';
+		console.log(
+			`${emoji} ${i + 1}. ${match.word} (similarity: ${match.similarity.toFixed(3)})`
+		);
+	});
+	console.log('');
 }
 
 // Run the demonstration

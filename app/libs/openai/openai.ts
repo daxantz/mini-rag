@@ -34,10 +34,23 @@
 
 import OpenAI from 'openai';
 
-export const openaiClient = new OpenAI({
-	apiKey: process.env.OPENAI_API_KEY as string,
-	baseURL: 'https://oai.helicone.ai/v1', // Routes through Helicone for monitoring
-	defaultHeaders: {
-		'Helicone-Auth': `Bearer ${process.env.HELICONE_API_KEY}`, // For usage tracking & analytics
+let _client: OpenAI | null = null;
+
+function getClient(): OpenAI {
+	if (!_client) {
+		_client = new OpenAI({
+			apiKey: process.env.OPENAI_API_KEY as string,
+			baseURL: 'https://oai.helicone.ai/v1', // Routes through Helicone for monitoring
+			defaultHeaders: {
+				'Helicone-Auth': `Bearer ${process.env.HELICONE_API_KEY}`, // For usage tracking & analytics
+			},
+		});
+	}
+	return _client;
+}
+
+export const openaiClient = new Proxy({} as OpenAI, {
+	get(_, prop: string | symbol) {
+		return (getClient() as OpenAI)[prop as keyof OpenAI];
 	},
 });
